@@ -1,0 +1,160 @@
+from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import login_user, logout_user, login_required, current_user
+from models import db
+from models.user import Usuario
+
+# Definición del Blueprint de autenticación
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Maneja el inicio de sesión.
+    - GET: muestra el formulario de login.
+    - POST: valida credenciales y redirige según el estado del usuario.
+    """
+    # Si el usuario ya tiene sesión activa, lo mandamos al dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('auth.dashboard_temporal'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+
+        # Validación básica de campos vacíos
+        if not username or not password:
+            flash('Por favor ingresa tu usuario y contraseña.', 'warning')
+            return render_template('login.html')
+
+        # Buscar el usuario en la base de datos
+        usuario = Usuario.query.filter_by(username=username).first()
+
+        # Verificar existencia, contraseña y estado activo
+        if not usuario or not usuario.verificar_password(password):
+            flash('Usuario o contraseña incorrectos.', 'danger')
+            return render_template('login.html')
+
+        if not usuario.activo:
+            flash('Tu cuenta está desactivada. Contacta al administrador.', 'danger')
+            return render_template('login.html')
+
+        # Iniciar sesión con Flask-Login
+        login_user(usuario)
+
+        # Si es el primer login, forzar cambio de contraseña y registro de preguntas
+        if usuario.primer_login:
+            flash('Bienvenido. Debes completar tu perfil de seguridad.', 'info')
+            return redirect(url_for('auth.cambiar_password_temporal'))
+
+        flash(f'Bienvenido, {usuario.nombres.split()[0]}.', 'success')
+        return redirect(url_for('auth.dashboard_temporal'))
+
+    return render_template('login.html')
+
+
+@auth_bp.route('/logout')
+@login_required
+def logout():
+    """Cierra la sesión del usuario actual."""
+    logout_user()
+    flash('Sesión cerrada correctamente.', 'info')
+    return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/cambiar-password', methods=['GET', 'POST'])
+@login_required
+def cambiar_password_temporal():
+    """
+    Fuerza al usuario a cambiar su contraseña temporal en el primer acceso.
+    Solo accesible si primer_login es True.
+    """
+    if not current_user.primer_login:
+        return redirect(url_for('auth.dashboard_temporal'))
+
+    if request.method == 'POST':
+        nueva_password = request.form.get('nueva_password', '')
+        confirmar_password = request.form.get('confirmar_password', '')
+
+        if len(nueva_password) < 6:
+            flash('La contraseña debe tener al menos 6 caracteres.', 'warning')
+            return render_template('cambiar_password.html')
+
+        if nueva_password != confirmar_password:
+            flash('Las contraseñas no coinciden.', 'warning')
+            return render_template('cambiar_password.html')
+
+        # Guardar la nueva contraseña cifrada
+        current_user.set_password(nueva_password)
+        current_user.password_temporal = False
+        db.session.commit()
+
+        flash('Contraseña actualizada. Ahora registra tus preguntas de seguridad.', 'success')
+        return redirect(url_for('auth.registrar_preguntas'))
+
+    return render_template('cambiar_password.html')
+
+
+@auth_bp.route('/preguntas-seguridad', methods=['GET', 'POST'])
+@login_required
+def registrar_preguntas():
+    """
+    Permite al usuario registrar sus 3 preguntas de seguridad en el primer acceso.
+    Solo accesible si primer_login es True.
+    """
+    from models.user import PreguntaSeguridad, RespuestaSeguridad
+
+    if not current_user.primer_login:
+        return redirect(url_for('auth.dashboard_temporal'))
+
+    preguntas = PreguntaSeguridad.query.all()
+
+    if request.method == 'POST':
+        preguntas_seleccionadas = [
+            request.form.get('pregunta_1'),
+            request.form.get('pregunta_2'),
+            request.form.get('pregunta_3'),
+        ]
+        respuestas_ingresadas = [
+            request.form.get('respuesta_1', '').strip(),
+            request.form.get('respuesta_2', '').strip(),
+            request.form.get('respuesta_3', '').strip(),
+        ]
+
+        # Validar que se seleccionaron 3 preguntas distintas
+        if len(set(preguntas_seleccionadas)) < 3:
+            flash('Debes seleccionar 3 preguntas diferentes.', 'warning')
+            return render_template('preguntas_seguridad.html', preguntas=preguntas)
+
+        # Validar que todas las respuestas tengan contenido
+        if any(r == '' for r in respuestas_ingresadas):
+            flash('Debes responder las 3 preguntas de seguridad.', 'warning')
+            return render_template('preguntas_seguridad.html', preguntas=preguntas)
+
+        # Guardar las 3 respuestas cifradas
+        for pregunta_id, respuesta in zip(preguntas_seleccionadas, respuestas_ingresadas):
+            nueva_respuesta = RespuestaSeguridad(
+                usuario_id=current_user.id,
+                pregunta_id=int(pregunta_id),
+            )
+            nueva_respuesta.set_respuesta(respuesta)
+            db.session.add(nueva_respuesta)
+
+        # Marcar que ya completó el primer login
+        current_user.primer_login = False
+        db.session.commit()
+
+        flash('Perfil de seguridad completado. ¡Bienvenido al sistema!', 'success')
+        return redirect(url_for('auth.dashboard_temporal'))
+
+    return render_template('preguntas_seguridad.html', preguntas=preguntas)
+
+
+@auth_bp.route('/dashboard')
+@login_required
+def dashboard_temporal():
+    """
+    Ruta del dashboard principal.
+    Muestra un panel de control dinámico según el rol del usuario.
+    """
+    return render_template('dashboard.html')

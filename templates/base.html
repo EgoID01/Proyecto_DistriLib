@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+            DISTRILIB
+        {% endblock %}
+    </title>
+
+    <!-- Bootstrap LOCAL -->
+    <link
+        rel="stylesheet"
+        href="../static/css/bootstrap.min.css"
+    >
+
+    <!-- FontAwesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
+
+    <!-- CSS EXTRA -->
+    {% block extra_css %}{% endblock %}
+
+</head>
+
+<body>
+
+    <!-- MENSAJES FLASH -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+
+            <div class="container mt-3">
+
+                {% for category, message in messages %}
+
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+
+                        {{ message }}
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                        ></button>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+    {% endwith %}
+
+    <!-- CONTENIDO -->
+    {% block content %}{% endblock %}
+
+    <!-- Bootstrap JS LOCAL -->
+    <script
+        src="../static/js/bootstrap.bundle.min.js"
+    ></script>
+
+    <!-- Chart.js -->
+    <script
+        src="../static/js/chart.umd.js"
+    ></script>
+
+
+    <!-- JS EXTRA -->
+    {% block extra_js %}{% endblock %}
+
+</body>
+
+</html>

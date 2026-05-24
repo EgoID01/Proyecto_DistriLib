@@ -1,0 +1,109 @@
+# =========================
+# ENTORNOS VIRTUALES
+# =========================
+.venv/
+venv/
+env/
+ENV/
+
+# =========================
+# VARIABLES DE ENTORNO
+# =========================
+.env
+.env.local
+.env.*.local
+
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribución / empaquetado
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================
+# BASES DE DATOS LOCALES
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# FLASK
+# =========================
+instance/
+.webassets-cache/
+
+# =========================
+# TESTS / COVERAGE
+# =========================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# =========================
+# LOGS
+# =========================
+*.log
+logs/
+
+# =========================
+# IDEs
+# =========================
+
+# PyCharm
+.idea/
+*.iml
+
+# VSCode
+.vscode/
+
+# =========================
+# SISTEMA OPERATIVO
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# =========================
+# ARCHIVOS DE DISTRIBUCIÓN
+# =========================
+*.whl
+*.tar.gz
+
+# =========================
+# MIGRACIONES (OPCIONAL)
+# =========================
+# migrations/versions/
+
+# =========================
+# IA / DOCUMENTACIÓN
+# =========================
+
+
+AGENTS.md
+FASE_1_ANALISIS.md
+FASE_2_PLAN.md
