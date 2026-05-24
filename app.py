@@ -1,3 +1,4 @@
+import pymysql
 from flask import Flask
 from flask_login import LoginManager
 from config import Config
@@ -10,8 +11,27 @@ from models.client import Cliente
 from models.sale import Venta, DetalleVenta, Notificacion
 
 
+def crear_base_de_datos():
+    """Crea la base de datos si no existe, antes de que SQLAlchemy intente conectarse."""
+    conexion = pymysql.connect(
+        host=Config.DB_HOST,
+        port=int(Config.DB_PORT),
+        user=Config.DB_USER,
+        password=Config.DB_PASSWORD,
+    )
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{Config.DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+        conexion.commit()
+        print(f"✓ Base de datos '{Config.DB_NAME}' verificada correctamente.")
+    finally:
+        conexion.close()
+
+
 def crear_app():
     """Factoría de la aplicación Flask."""
+
+    crear_base_de_datos()
 
     app = Flask(__name__)
     app.config.from_object(Config)
