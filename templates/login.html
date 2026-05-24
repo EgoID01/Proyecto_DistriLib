@@ -27,22 +27,22 @@
                       >Inicio de sesión</h4>
                 </div>
 
-                <form>
+                <form method="POST">
                   <p>Ingresa tu nombre de usuario</p>
 
                   <div data-mdb-input-init class="form-outline mb-4">
-                    <input type="email" id="form2Example11" class="form-control"
+                    <input type="text" id="form2Example11" name="username" class="form-control"
                       placeholder="Usuario" />
                   </div>
 
                   <div data-mdb-input-init class="form-outline mb-4">
-                    <label class="form-label" for="form2Example11">Ingresa tu contraseña</label>
-                    <input type="password" id="form2Example22" class="form-control"
+                    <label class="form-label" for="form2Example22">Ingresa tu contraseña</label>
+                    <input type="password" id="form2Example22" name="password" class="form-control"
                     placeholder="Contraseña" />
                   </div>
 
                   <div class="text-center pt-1 mb-5 pb-1">
-                    <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="button"
+                    <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit"
                     style="margin-right: 40px;">
                       Iniciar sesión</button>
                     <a class="text-muted" href="#!">Olvidé mi contraseña</a>

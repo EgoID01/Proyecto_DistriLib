@@ -55,6 +55,10 @@ def crear_app():
     from routes.auth_routes import auth_bp
     app.register_blueprint(auth_bp)
 
+    @app.route('/')
+    def index():
+        from flask import redirect, url_for
+        return redirect(url_for('auth.login'))
     # Aquí iremos registrando más blueprints en fases siguientes:
     # from routes.dashboard_routes import dashboard_bp
     # app.register_blueprint(dashboard_bp)
