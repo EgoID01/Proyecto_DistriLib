@@ -7,6 +7,19 @@ from models.user import Usuario
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
+def _redirigir_segun_estado():
+    """
+    Aplica la máquina de estados del primer login.
+    Retorna un redirect si el usuario aún no completó el perfil de seguridad,
+    o None si ya puede acceder al dashboard.
+    """
+    if current_user.password_temporal:
+        return redirect(url_for('auth.cambiar_password_temporal'))
+    if current_user.primer_login:
+        return redirect(url_for('auth.registrar_preguntas'))
+    return None
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """
@@ -14,9 +27,9 @@ def login():
     - GET: muestra el formulario de login.
     - POST: valida credenciales y redirige según el estado del usuario.
     """
-    # Si el usuario ya tiene sesión activa, lo mandamos al dashboard
+    # Si ya tiene sesión activa, aplicar la máquina de estados
     if current_user.is_authenticated:
-        return redirect(url_for('auth.dashboard_temporal'))
+        return _redirigir_segun_estado() or redirect(url_for('auth.dashboard'))
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -42,13 +55,13 @@ def login():
         # Iniciar sesión con Flask-Login
         login_user(usuario)
 
-        # Si es el primer login, forzar cambio de contraseña y registro de preguntas
+        # Aplicar la máquina de estados post-login
         if usuario.primer_login:
             flash('Bienvenido. Debes completar tu perfil de seguridad.', 'info')
             return redirect(url_for('auth.cambiar_password_temporal'))
 
         flash(f'Bienvenido, {usuario.nombres.split()[0]}.', 'success')
-        return redirect(url_for('auth.dashboard_temporal'))
+        return redirect(url_for('auth.dashboard'))
 
     return render_template('login.html')
 
@@ -67,10 +80,15 @@ def logout():
 def cambiar_password_temporal():
     """
     Fuerza al usuario a cambiar su contraseña temporal en el primer acceso.
-    Solo accesible si primer_login es True.
+    Solo accesible mientras password_temporal sea True.
     """
+    # Setup ya completado
     if not current_user.primer_login:
-        return redirect(url_for('auth.dashboard_temporal'))
+        return redirect(url_for('auth.dashboard'))
+
+    # Contraseña ya cambiada, pasar al siguiente paso
+    if not current_user.password_temporal:
+        return redirect(url_for('auth.registrar_preguntas'))
 
     if request.method == 'POST':
         nueva_password = request.form.get('nueva_password', '')
@@ -100,12 +118,17 @@ def cambiar_password_temporal():
 def registrar_preguntas():
     """
     Permite al usuario registrar sus 3 preguntas de seguridad en el primer acceso.
-    Solo accesible si primer_login es True.
+    Solo accesible si primer_login es True y password_temporal es False.
     """
     from models.user import PreguntaSeguridad, RespuestaSeguridad
 
+    # Setup ya completado
     if not current_user.primer_login:
-        return redirect(url_for('auth.dashboard_temporal'))
+        return redirect(url_for('auth.dashboard'))
+
+    # Contraseña aún sin cambiar, volver al paso anterior
+    if current_user.password_temporal:
+        return redirect(url_for('auth.cambiar_password_temporal'))
 
     preguntas = PreguntaSeguridad.query.all()
 
@@ -145,16 +168,19 @@ def registrar_preguntas():
         db.session.commit()
 
         flash('Perfil de seguridad completado. ¡Bienvenido al sistema!', 'success')
-        return redirect(url_for('auth.dashboard_temporal'))
+        return redirect(url_for('auth.dashboard'))
 
     return render_template('preguntas_seguridad.html', preguntas=preguntas)
 
 
 @auth_bp.route('/dashboard')
 @login_required
-def dashboard_temporal():
+def dashboard():
     """
-    Ruta del dashboard principal.
-    Muestra un panel de control dinámico según el rol del usuario.
+    Dashboard principal. Redirige al paso de seguridad pendiente
+    si el usuario aún no completó el perfil en el primer acceso.
     """
+    pendiente = _redirigir_segun_estado()
+    if pendiente:
+        return pendiente
     return render_template('dashboard.html')
