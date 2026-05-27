@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -43,14 +44,22 @@ class Usuario(UserMixin, db.Model):
 
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    # Token único por sesión — se regenera al cambiar contraseña para invalidar cookies viejas
+    session_token = db.Column(db.String(36), nullable=False, default=lambda: str(uuid.uuid4()))
+
     # Relaciones
     ventas = db.relationship('Venta', backref='vendedor', lazy=True)
     movimientos = db.relationship('MovimientoInventario', backref='usuario', lazy=True)
     respuestas_seguridad = db.relationship('RespuestaSeguridad', backref='usuario', lazy=True)
 
+    def get_id(self):
+        """Devuelve id|session_token para que Flask-Login invalide sesiones viejas."""
+        return f"{self.id}|{self.session_token}"
+
     def set_password(self, password):
-        """Genera el hash seguro de la contraseña usando Werkzeug."""
+        """Genera el hash seguro de la contraseña y regenera el session_token."""
         self.password_hash = generate_password_hash(password)
+        self.session_token = str(uuid.uuid4())
 
     def verificar_password(self, password):
         """Compara la contraseña ingresada contra el hash almacenado."""

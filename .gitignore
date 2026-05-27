@@ -103,7 +103,6 @@ desktop.ini
 # IA / DOCUMENTACIÓN
 # =========================
 
+*.md
 
-AGENTS.md
-FASE_1_ANALISIS.md
-FASE_2_PLAN.md
+do_not_read.txt

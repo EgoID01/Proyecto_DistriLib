@@ -47,9 +47,24 @@ def crear_app():
     login_manager.login_message_category = 'warning'
 
     @login_manager.user_loader
-    def cargar_usuario(usuario_id):
-        """Carga el usuario desde la base de datos para mantener la sesión activa."""
-        return Usuario.query.get(int(usuario_id))
+    def cargar_usuario(usuario_id_token):
+        """
+        Carga el usuario validando id y session_token.
+        El formato almacenado en la cookie es 'id|session_token'.
+        Si el token no coincide (base de datos recreada, contraseña cambiada),
+        la sesión se invalida y el usuario debe volver a loguearse.
+        """
+        try:
+            partes = usuario_id_token.split('|')
+            if len(partes) != 2:
+                return None
+            usuario_id, token = partes
+            usuario = Usuario.query.get(int(usuario_id))
+            if usuario and usuario.session_token == token:
+                return usuario
+            return None
+        except Exception:
+            return None
 
     # Registrar Blueprints (rutas organizadas por módulo)
     from routes.auth_routes import auth_bp
