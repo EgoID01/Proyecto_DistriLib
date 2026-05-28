@@ -107,6 +107,10 @@ def cambiar_password_temporal():
         current_user.password_temporal = False
         db.session.commit()
 
+        # Re-autenticar para actualizar la cookie con el nuevo session_token
+        # (set_password regenera el token, lo que invalidaría la sesión activa)
+        login_user(current_user)
+
         flash('Contraseña actualizada. Ahora registra tus preguntas de seguridad.', 'success')
         return redirect(url_for('auth.registrar_preguntas'))
 
