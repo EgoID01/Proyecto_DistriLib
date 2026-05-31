@@ -9,7 +9,7 @@ class Libro(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(200), nullable=False)
-    autor = db.Column(db.String(150), nullable=False)
+    autor = db.Column(db.String(100), nullable=False)
     editorial = db.Column(db.String(100), nullable=False)
     anio_publicacion = db.Column(db.Integer, nullable=False)
     isbn = db.Column(db.String(20), nullable=False, unique=True)

@@ -57,7 +57,7 @@
                     <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="submit"
                     style="margin-right: 40px;">
                       Iniciar sesión</button>
-                    <a class="text-muted" href="#!">Olvidé mi contraseña</a>
+                    <a class="text-muted" id="forgot-link" href="/auth/recuperar-password">Olvidé mi contraseña</a>
                   </div>
 
                 </form>
@@ -76,5 +76,15 @@
   </div>
 </section>
 <script src="../static/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.getElementById('forgot-link').addEventListener('click', function(e) {
+    e.preventDefault()
+    const username = document.getElementById('form2Example11').value.trim()
+    const url = username
+      ? '/auth/recuperar-password?username=' + encodeURIComponent(username)
+      : '/auth/recuperar-password'
+    window.location.href = url
+  })
+</script>
 </body>
 </html>

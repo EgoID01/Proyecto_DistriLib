@@ -10,7 +10,6 @@ inventario_bp = Blueprint('inventario', __name__, url_prefix='/inventario')
 
 @inventario_bp.route('/')
 @login_required
-@verificar_rol('ADMIN', 'BODEGUERO')
 def listar_libros():
     pendiente = redirigir_segun_estado()
     if pendiente:

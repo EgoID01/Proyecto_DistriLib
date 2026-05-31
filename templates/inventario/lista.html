@@ -4,7 +4,7 @@
 
 {% block page_content %}
   <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Inventario de Libros</h1>
+    <h1 class="h2">{% if current_user.es_vendedor() %}Consultar Inventario{% else %}Inventario de Libros{% endif %}</h1>
     {% if current_user.es_admin() or current_user.es_bodeguero() %}
     <a href="{{ url_for('inventario.crear_libro') }}" class="btn btn-primary">
       <i class="fa-solid fa-book-medical me-1"></i> Ingresar libro
@@ -23,7 +23,7 @@
           <th>Precio</th>
           <th>Stock</th>
           <th>Estado</th>
-          <th>Acciones</th>
+          {% if not current_user.es_vendedor() %}<th>Acciones</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -52,6 +52,7 @@
               <span class="badge bg-secondary">Inactivo</span>
             {% endif %}
           </td>
+          {% if not current_user.es_vendedor() %}
           <td>
             <div class="d-flex gap-1 flex-wrap">
               <!-- Editar -->
@@ -87,10 +88,11 @@
               {% endif %}
             </div>
           </td>
+          {% endif %}
         </tr>
         {% else %}
         <tr>
-          <td colspan="8" class="text-center text-muted py-4">No hay libros registrados en el inventario.</td>
+          <td colspan="{{ 7 if current_user.es_vendedor() else 8 }}" class="text-center text-muted py-4">No hay libros registrados en el inventario.</td>
         </tr>
         {% endfor %}
       </tbody>

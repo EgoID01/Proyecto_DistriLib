@@ -165,6 +165,115 @@ def registrar_preguntas():
     return render_template('preguntas_seguridad.html', preguntas=preguntas)
 
 
+@auth_bp.route('/recuperar-password', methods=['GET', 'POST'])
+def recuperar_password():
+    """
+    Paso 1 del flujo de recuperación: verifica identidad con las preguntas de seguridad.
+    Si las 3 respuestas son correctas, habilita el acceso a /nueva-password via sesión.
+    """
+    from models.user import PreguntaSeguridad, RespuestaSeguridad
+
+    if current_user.is_authenticated:
+        return redirect(url_for('auth.dashboard'))
+
+    if request.method == 'GET':
+        username = request.args.get('username', '').strip()
+        if not username:
+            flash('Ingresa tu nombre de usuario antes de recuperar la contraseña.', 'warning')
+            return redirect(url_for('auth.login'))
+
+        usuario = Usuario.query.filter_by(username=username).first()
+        if not usuario or not usuario.activo:
+            flash('Usuario no encontrado o inactivo.', 'danger')
+            return redirect(url_for('auth.login'))
+
+        respuestas = RespuestaSeguridad.query.filter_by(usuario_id=usuario.id).all()
+        if not respuestas:
+            flash('Este usuario aún no ha configurado sus preguntas de seguridad.', 'danger')
+            return redirect(url_for('auth.login'))
+
+        preguntas = [
+            {'id': r.pregunta_id, 'texto': r.pregunta.pregunta}
+            for r in respuestas
+        ]
+        return render_template('recuperar_password.html',
+                               username=username, preguntas=preguntas)
+
+    # POST: validar respuestas
+    username = request.form.get('username', '').strip()
+    usuario = Usuario.query.filter_by(username=username).first()
+    if not usuario or not usuario.activo:
+        flash('Sesión inválida. Intenta de nuevo.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    respuestas_db = RespuestaSeguridad.query.filter_by(usuario_id=usuario.id).all()
+    respuestas_map = {r.pregunta_id: r for r in respuestas_db}
+    preguntas = [
+        {'id': r.pregunta_id, 'texto': r.pregunta.pregunta}
+        for r in respuestas_db
+    ]
+
+    todas_correctas = True
+    for i, r in enumerate(respuestas_db, start=1):
+        respuesta_ingresada = request.form.get(f'respuesta_{i}', '').strip()
+        if not respuestas_map[r.pregunta_id].verificar_respuesta(respuesta_ingresada):
+            todas_correctas = False
+            break
+
+    if not todas_correctas:
+        flash('Una o más respuestas son incorrectas. Intenta de nuevo.', 'danger')
+        return render_template('recuperar_password.html',
+                               username=username, preguntas=preguntas)
+
+    from flask import session
+    session['reset_uid'] = usuario.id
+    return redirect(url_for('auth.nueva_password'))
+
+
+@auth_bp.route('/nueva-password', methods=['GET', 'POST'])
+def nueva_password():
+    """
+    Paso 2 del flujo de recuperación: permite al usuario establecer una nueva contraseña.
+    Solo accesible si /recuperar-password validó correctamente las preguntas de seguridad.
+    """
+    from flask import session
+
+    if current_user.is_authenticated:
+        return redirect(url_for('auth.dashboard'))
+
+    uid = session.get('reset_uid')
+    if not uid:
+        flash('Sesión de recuperación inválida. Responde las preguntas de seguridad primero.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    usuario = Usuario.query.get(uid)
+    if not usuario:
+        session.pop('reset_uid', None)
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        nueva = request.form.get('nueva_password', '')
+        confirmar = request.form.get('confirmar_password', '')
+
+        if len(nueva) < 6:
+            flash('La contraseña debe tener al menos 6 caracteres.', 'warning')
+            return render_template('nueva_password.html')
+
+        if nueva != confirmar:
+            flash('Las contraseñas no coinciden.', 'warning')
+            return render_template('nueva_password.html')
+
+        usuario.set_password(nueva)
+        usuario.password_temporal = False
+        db.session.commit()
+
+        session.pop('reset_uid', None)
+        flash('Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('nueva_password.html')
+
+
 @auth_bp.route('/notificaciones-json')
 @login_required
 def notificaciones_json():
