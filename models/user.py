@@ -118,3 +118,31 @@ class RespuestaSeguridad(db.Model):
 
     def __repr__(self):
         return f'<RespuestaSeguridad usuario={self.usuario_id} pregunta={self.pregunta_id}>'
+
+
+class ConfiguracionSistema(db.Model):
+    """
+    Fila única con configuración global del sistema.
+    Se crea automáticamente con id=1 en el primer acceso.
+    """
+
+    __tablename__ = 'configuracion_sistema'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Timestamp del último borrado de notificaciones por el admin.
+    # Solo se muestran en el feed los eventos posteriores a esta fecha.
+    notif_limpiadas_en = db.Column(db.DateTime, nullable=True)
+
+    @staticmethod
+    def obtener():
+        """Devuelve la fila de configuración, creándola si no existe."""
+        config = ConfiguracionSistema.query.first()
+        if not config:
+            config = ConfiguracionSistema()
+            db.session.add(config)
+            db.session.commit()
+        return config
+
+    def __repr__(self):
+        return f'<ConfiguracionSistema notif_limpiadas_en={self.notif_limpiadas_en}>'

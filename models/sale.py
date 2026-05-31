@@ -80,27 +80,3 @@ class DetalleVenta(db.Model):
         return f'<DetalleVenta venta={self.venta_id} libro={self.libro_id} cant={self.cantidad}>'
 
 
-class Notificacion(db.Model):
-    """
-    Almacena alertas automáticas generadas cuando el stock de un libro es bajo.
-    Se muestran en el dashboard.
-    """
-
-    __tablename__ = 'notificaciones'
-
-    id = db.Column(db.Integer, primary_key=True)
-    libro_id = db.Column(db.Integer, db.ForeignKey('libros.id'), nullable=False)
-
-    # ALERTA_AMARILLA (stock 3-5) o ALERTA_ROJA (stock <= 2)
-    tipo = db.Column(db.String(20), nullable=False)
-
-    mensaje = db.Column(db.Text, nullable=False)
-    leida = db.Column(db.Boolean, default=False, nullable=False)
-    fecha = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-    def marcar_leida(self):
-        """Marca la notificación como leída."""
-        self.leida = True
-
-    def __repr__(self):
-        return f'<Notificacion {self.tipo} | Libro: {self.libro_id}>'

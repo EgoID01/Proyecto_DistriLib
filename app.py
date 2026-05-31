@@ -5,10 +5,10 @@ from config import Config
 from models import db
 
 # Importar todos los modelos para que SQLAlchemy los registre antes de crear tablas
-from models.user import Usuario, Rol, PreguntaSeguridad, RespuestaSeguridad
+from models.user import Usuario, Rol, PreguntaSeguridad, RespuestaSeguridad, ConfiguracionSistema
 from models.book import Libro, MovimientoInventario
 from models.client import Cliente
-from models.sale import Venta, DetalleVenta, Notificacion
+from models.sale import Venta, DetalleVenta
 
 
 def crear_base_de_datos():
@@ -68,15 +68,19 @@ def crear_app():
 
     # Registrar Blueprints (rutas organizadas por módulo)
     from routes.auth_routes import auth_bp
+    from routes.user_routes import usuarios_bp
+    from routes.inventory_routes import inventario_bp
     app.register_blueprint(auth_bp)
+    app.register_blueprint(usuarios_bp)
+    app.register_blueprint(inventario_bp)
 
     @app.route('/')
     def index():
         from flask import redirect, url_for
         return redirect(url_for('auth.login'))
     # Aquí iremos registrando más blueprints en fases siguientes:
-    # from routes.dashboard_routes import dashboard_bp
-    # app.register_blueprint(dashboard_bp)
+    # from routes.inventory_routes import inventory_bp
+    # from routes.sales_routes import sales_bp
 
     # Crear tablas y datos iniciales dentro del contexto de la app
     with app.app_context():

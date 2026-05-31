@@ -1,0 +1,84 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Ajustar Stock · DistriLib{% endblock %}
+
+{% block page_content %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Ajustar Stock</h1>
+    <a href="{{ url_for('inventario.listar_libros') }}" class="btn btn-secondary">
+      <i class="fa-solid fa-arrow-left me-1"></i> Volver
+    </a>
+  </div>
+
+  <div class="row">
+    <div class="col-md-5">
+      <!-- Info del libro -->
+      <div class="p-4 bg-white rounded shadow-sm border mb-3">
+        <h6 class="text-muted text-uppercase fw-semibold mb-3">Libro seleccionado</h6>
+        <p class="mb-1"><strong>{{ libro.nombre }}</strong></p>
+        <p class="mb-1 text-muted small">{{ libro.autor }} · {{ libro.editorial }}</p>
+        <p class="mb-1 text-muted small">ISBN: {{ libro.isbn }}</p>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted">Stock actual</span>
+          {% set alerta = libro.nivel_alerta() %}
+          <span class="fs-4 fw-bold {{ 'text-danger' if alerta == 'ALERTA_ROJA' else ('text-warning' if alerta == 'ALERTA_AMARILLA' else 'text-success') }}">
+            {{ libro.stock }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Formulario de ajuste -->
+      <div class="p-4 bg-white rounded shadow-sm border">
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tipo de movimiento</label>
+            <select class="form-select" name="tipo_movimiento" id="tipoSelect" required>
+              <option value="ENTRADA">ENTRADA — Agregar unidades</option>
+              <option value="AJUSTE">AJUSTE — Corrección manual</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Cantidad</label>
+            <input type="number" class="form-control" name="cantidad" required
+              placeholder="Ej: 10">
+            <div class="form-text" id="cantidadHint">
+              Ingresa la cantidad de unidades a agregar.
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Motivo <span id="motivoReq" class="text-muted">(opcional para ENTRADA)</span>
+            </label>
+            <input type="text" class="form-control" name="motivo"
+              placeholder="Ej: Reposición de stock, corrección de conteo...">
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fa-solid fa-boxes-stacked me-1"></i> Aplicar ajuste
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const tipoSelect = document.getElementById('tipoSelect');
+  const cantidadHint = document.getElementById('cantidadHint');
+  const motivoReq = document.getElementById('motivoReq');
+
+  tipoSelect.addEventListener('change', function () {
+    if (this.value === 'AJUSTE') {
+      cantidadHint.textContent = 'Usa valores positivos para agregar y negativos para restar (Ej: -5).';
+      motivoReq.textContent = '(obligatorio para AJUSTE)';
+      motivoReq.className = 'text-danger';
+    } else {
+      cantidadHint.textContent = 'Ingresa la cantidad de unidades a agregar.';
+      motivoReq.textContent = '(opcional para ENTRADA)';
+      motivoReq.className = 'text-muted';
+    }
+  });
+</script>
+{% endblock %}

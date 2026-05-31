@@ -2,22 +2,10 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db
 from models.user import Usuario
+from utils.helpers import redirigir_segun_estado
 
 # Definición del Blueprint de autenticación
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
-
-
-def _redirigir_segun_estado():
-    """
-    Aplica la máquina de estados del primer login.
-    Retorna un redirect si el usuario aún no completó el perfil de seguridad,
-    o None si ya puede acceder al dashboard.
-    """
-    if current_user.password_temporal:
-        return redirect(url_for('auth.cambiar_password_temporal'))
-    if current_user.primer_login:
-        return redirect(url_for('auth.registrar_preguntas'))
-    return None
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -29,7 +17,7 @@ def login():
     """
     # Si ya tiene sesión activa, aplicar la máquina de estados
     if current_user.is_authenticated:
-        return _redirigir_segun_estado() or redirect(url_for('auth.dashboard'))
+        return redirigir_segun_estado() or redirect(url_for('auth.dashboard'))
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -177,6 +165,66 @@ def registrar_preguntas():
     return render_template('preguntas_seguridad.html', preguntas=preguntas)
 
 
+@auth_bp.route('/notificaciones-json')
+@login_required
+def notificaciones_json():
+    from flask import jsonify
+    from models.book import Libro, MovimientoInventario
+    from models.user import ConfiguracionSistema
+
+    config = ConfiguracionSistema.obtener()
+    corte = config.notif_limpiadas_en
+
+    mov_query = MovimientoInventario.query
+    if corte:
+        mov_query = mov_query.filter(MovimientoInventario.fecha > corte)
+    movimientos = mov_query.order_by(MovimientoInventario.fecha.desc()).limit(5).all()
+
+    if corte:
+        libros_con_mov = (
+            db.session.query(MovimientoInventario.libro_id)
+            .filter(MovimientoInventario.fecha > corte)
+            .subquery()
+        )
+        libros_roja = Libro.query.filter(Libro.stock <= 2, Libro.id.in_(libros_con_mov)).order_by(Libro.stock.asc()).all()
+        libros_amarilla = Libro.query.filter(Libro.stock > 2, Libro.stock <= 5, Libro.id.in_(libros_con_mov)).order_by(Libro.stock.asc()).all()
+    else:
+        libros_roja = Libro.query.filter(Libro.stock <= 2).order_by(Libro.stock.asc()).all()
+        libros_amarilla = Libro.query.filter(Libro.stock > 2, Libro.stock <= 5).order_by(Libro.stock.asc()).all()
+
+    return jsonify({
+        'total_alertas': len(libros_roja) + len(libros_amarilla),
+        'libros_roja':    [{'nombre': l.nombre, 'stock': l.stock} for l in libros_roja],
+        'libros_amarilla': [{'nombre': l.nombre, 'stock': l.stock} for l in libros_amarilla],
+        'movimientos': [
+            {
+                'tipo':     m.tipo_movimiento,
+                'libro':    m.libro.nombre,
+                'cantidad': m.cantidad,
+                'fecha':    m.fecha.strftime('%d/%m %H:%M'),
+                'motivo':   m.motivo or '',
+            }
+            for m in movimientos
+        ],
+    })
+
+
+@auth_bp.route('/limpiar-notificaciones', methods=['POST'])
+@login_required
+def limpiar_notificaciones():
+    from utils.decorators import solo_admin
+    from models.user import ConfiguracionSistema
+    from datetime import datetime
+    if not current_user.es_admin():
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('auth.dashboard'))
+    config = ConfiguracionSistema.obtener()
+    config.notif_limpiadas_en = datetime.utcnow()
+    db.session.commit()
+    flash('Notificaciones borradas correctamente.', 'success')
+    return redirect(url_for('auth.dashboard'))
+
+
 @auth_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -184,7 +232,46 @@ def dashboard():
     Dashboard principal. Redirige al paso de seguridad pendiente
     si el usuario aún no completó el perfil en el primer acceso.
     """
-    pendiente = _redirigir_segun_estado()
+    pendiente = redirigir_segun_estado()
     if pendiente:
         return pendiente
-    return render_template('dashboard.html')
+
+    from models.book import Libro, MovimientoInventario
+    from models.user import ConfiguracionSistema
+
+    config = ConfiguracionSistema.obtener()
+    corte = config.notif_limpiadas_en
+
+    mov_query = MovimientoInventario.query
+    if corte:
+        mov_query = mov_query.filter(MovimientoInventario.fecha > corte)
+    movimientos_recientes = mov_query.order_by(MovimientoInventario.fecha.desc()).limit(5).all()
+
+    # Alertas de stock: solo libros con actividad posterior al último borrado
+    if corte:
+        libros_con_mov_reciente = (
+            db.session.query(MovimientoInventario.libro_id)
+            .filter(MovimientoInventario.fecha > corte)
+            .subquery()
+        )
+        libros_roja = Libro.query.filter(
+            Libro.stock <= 2,
+            Libro.id.in_(libros_con_mov_reciente)
+        ).order_by(Libro.stock.asc()).all()
+        libros_amarilla = Libro.query.filter(
+            Libro.stock > 2, Libro.stock <= 5,
+            Libro.id.in_(libros_con_mov_reciente)
+        ).order_by(Libro.stock.asc()).all()
+    else:
+        libros_roja = Libro.query.filter(Libro.stock <= 2).order_by(Libro.stock.asc()).all()
+        libros_amarilla = Libro.query.filter(Libro.stock > 2, Libro.stock <= 5).order_by(Libro.stock.asc()).all()
+
+    total_alertas = len(libros_roja) + len(libros_amarilla)
+
+    return render_template(
+        'dashboard.html',
+        libros_roja=libros_roja,
+        libros_amarilla=libros_amarilla,
+        movimientos_recientes=movimientos_recientes,
+        total_alertas=total_alertas,
+    )

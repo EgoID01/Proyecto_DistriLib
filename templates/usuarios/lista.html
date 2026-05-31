@@ -1,0 +1,77 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Usuarios · DistriLib{% endblock %}
+
+{% block page_content %}
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Gestión de Usuarios</h1>
+    <a href="{{ url_for('usuarios.crear_usuario') }}" class="btn btn-primary">
+      <i class="fa-solid fa-user-plus me-1"></i> Nuevo Usuario
+    </a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Nombre</th>
+          <th>Cédula</th>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Primer login</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td>{{ u.nombres }}</td>
+          <td>{{ u.cedula }}</td>
+          <td>{{ u.username }}</td>
+          <td>
+            <span class="badge
+              {% if u.rol.nombre == 'ADMIN' %}bg-danger
+              {% elif u.rol.nombre == 'BODEGUERO' %}bg-warning text-dark
+              {% else %}bg-info text-dark{% endif %}">
+              {{ u.rol.nombre }}
+            </span>
+          </td>
+          <td>
+            {% if u.activo %}
+              <span class="badge bg-success">Activo</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactivo</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.primer_login %}
+              <span class="badge bg-warning text-dark">Pendiente</span>
+            {% else %}
+              <span class="badge bg-light text-dark border">Completado</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.username != 'admin' and u.id != current_user.id %}
+              <form method="POST"
+                    action="{{ url_for('usuarios.toggle_activo', id=u.id) }}"
+                    style="display:inline;">
+                <button type="submit"
+                  class="btn btn-sm {{ 'btn-outline-danger' if u.activo else 'btn-outline-success' }}">
+                  {{ 'Desactivar' if u.activo else 'Activar' }}
+                </button>
+              </form>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
