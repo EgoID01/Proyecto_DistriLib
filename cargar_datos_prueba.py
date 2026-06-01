@@ -4,13 +4,13 @@ Datos de prueba para DistriLib
 Simula 1 año de operación: junio 2025 – mayo 2026
 
 Uso:
-    python seed_test_data.py
+    python cargar_datos_prueba.py
 
 Credenciales generadas:
-    admin       / Admin123        (ADMIN)
-    magonzalez  / Vendedor123     (VENDEDOR – María González)
-    cmendoza    / Vendedor123     (VENDEDOR – Carlos Mendoza)
-    lparedes    / Bodeguero123    (BODEGUERO – Luis Paredes)
+    admin        / 123456    (ADMIN)     – primer_login=True, password_temporal=True
+    jdaltamirano / Startend3 (VENDEDOR – Juan Diego Altamirano)
+    jamalave     / Startend3 (BODEGUERO – Jennifer Alejandra Malave)
+    omite        / Startend3 (VENDEDOR – Oscar Mite)
 """
 
 import sys
@@ -35,62 +35,69 @@ def rand_fecha(anio, mes, dia_max=28):
                     random.randint(8, 18), random.randint(0, 59))
 
 
-def agregar_respuestas(usuario_id, pqs, respuestas):
-    for pregunta, resp in zip(pqs, respuestas):
-        r = RespuestaSeguridad(usuario_id=usuario_id, pregunta_id=pregunta.id)
-        r.set_respuesta(resp)
-        db.session.add(r)
-
 
 app = crear_app()
 
 with app.app_context():
 
     # ── Guardia: no correr dos veces ────────────────────────────────
-    if Usuario.query.filter_by(username='magonzalez').first():
+    if Usuario.query.filter_by(username='jdaltamirano').first():
         print("Los datos de prueba ya existen. Nada que hacer.")
         sys.exit(0)
 
-    # ── Roles y preguntas ya seedeados ──────────────────────────────
+    # ── Roles ya seedeados ───────────────────────────────────────────
     rol_admin     = Rol.query.filter_by(nombre='ADMIN').first()
     rol_vendedor  = Rol.query.filter_by(nombre='VENDEDOR').first()
     rol_bodeguero = Rol.query.filter_by(nombre='BODEGUERO').first()
-    pqs = PreguntaSeguridad.query.order_by(PreguntaSeguridad.id).all()[:3]
 
     # ── Actualizar admin ────────────────────────────────────────────
     admin = Usuario.query.filter_by(username='admin').first()
     admin.nombres           = 'Administrador del Sistema'
     admin.cedula            = '1712345678'
-    admin.primer_login      = False
-    admin.password_temporal = False
-    admin.set_password('Admin123')
-    if not admin.respuestas_seguridad:
-        agregar_respuestas(admin.id, pqs, ['firulais', 'quito', 'maria'])
+    admin.primer_login      = True
+    admin.password_temporal = True
+    admin.set_password('123456')
+
+    # ── Preguntas de seguridad ───────────────────────────────────────
+    pq_mascota = PreguntaSeguridad.query.filter_by(
+        pregunta='¿Cuál es el nombre de tu primera mascota?').first()
+    pq_ciudad  = PreguntaSeguridad.query.filter_by(
+        pregunta='¿En qué ciudad naciste?').first()
+    pq_comida  = PreguntaSeguridad.query.filter_by(
+        pregunta='¿Cuál es tu comida favorita?').first()
+
+    def agregar_respuestas(usuario_id, resps):
+        for pq, resp in zip([pq_mascota, pq_ciudad, pq_comida], resps):
+            r = RespuestaSeguridad(usuario_id=usuario_id, pregunta_id=pq.id)
+            r.set_respuesta(resp)
+            db.session.add(r)
+
+    resps_demo = ['Coco', 'Guayaquil', 'Encebollado']
 
     # ── Nuevos usuarios ─────────────────────────────────────────────
-    def nuevo_usuario(nombres, cedula, username, password, rol, fecha):
+    def nuevo_usuario(nombres, cedula, username, rol, fecha):
         u = Usuario(
             nombres=nombres, cedula=cedula, username=username,
             rol_id=rol.id, activo=True,
             primer_login=False, password_temporal=False,
             fecha_creacion=fecha,
         )
-        u.set_password(password)
+        u.set_password('Startend3')
         db.session.add(u)
         db.session.flush()
         return u
 
-    v1 = nuevo_usuario('María José González Mora',    '1723456789', 'magonzalez',
-                       'Vendedor123',  rol_vendedor,  datetime(2025, 6, 1, 9, 0))
-    agregar_respuestas(v1.id, pqs, ['luna', 'guayaquil', 'ana'])
+    v1 = nuevo_usuario('Juan Diego Altamirano Tobar', '0954236980', 'jdaltamirano',
+                       rol_vendedor,  datetime(2025, 6, 1, 9, 0))
+    agregar_respuestas(v1.id, resps_demo)
 
-    v2 = nuevo_usuario('Carlos Alberto Mendoza Vega', '0912345678', 'cmendoza',
-                       'Vendedor123',  rol_vendedor,  datetime(2025, 7, 15, 10, 0))
-    agregar_respuestas(v2.id, pqs, ['rocky', 'cuenca', 'rosa'])
+    bo = nuevo_usuario('Jennifer Alejandra Malave',   '0966233090', 'jamalave',
+                       rol_bodeguero, datetime(2025, 6, 5, 8, 30))
+    agregar_respuestas(bo.id, resps_demo)
 
-    bo = nuevo_usuario('Luis Fernando Paredes Castro', '1834567890', 'lparedes',
-                       'Bodeguero123', rol_bodeguero, datetime(2025, 6, 5, 8, 30))
-    agregar_respuestas(bo.id, pqs, ['toby', 'ambato', 'carmen'])
+    v2 = nuevo_usuario('Oscar Mite',                  '1723456783', 'omite',
+                       rol_vendedor,  datetime(2025, 7, 15, 10, 0))
+    agregar_respuestas(v2.id, resps_demo)
 
     db.session.commit()
     print("✔ Usuarios creados.")
@@ -383,8 +390,8 @@ with app.app_context():
     print(f"   Movimientos : {MovimientoInventario.query.count()}")
     print()
     print("   CREDENCIALES:")
-    print("   admin       / Admin123       [ADMIN]")
-    print("   magonzalez  / Vendedor123    [VENDEDOR]")
-    print("   cmendoza    / Vendedor123    [VENDEDOR]")
-    print("   lparedes    / Bodeguero123   [BODEGUERO]")
+    print("   admin        / 123456    [ADMIN]  – primer login pendiente")
+    print("   jdaltamirano / Startend3 [VENDEDOR]")
+    print("   jamalave     / Startend3 [BODEGUERO]")
+    print("   omite        / Startend3 [VENDEDOR]")
     print("=" * 52)
