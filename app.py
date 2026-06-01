@@ -70,9 +70,11 @@ def crear_app():
     from routes.auth_routes import auth_bp
     from routes.user_routes import usuarios_bp
     from routes.inventory_routes import inventario_bp
+    from routes.sales_routes import ventas_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(usuarios_bp)
     app.register_blueprint(inventario_bp)
+    app.register_blueprint(ventas_bp)
 
     @app.route('/')
     def index():

@@ -1,0 +1,165 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Nueva Venta · Paso 1{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">Nueva Venta</h1>
+  <form method="POST" action="{{ url_for('ventas.cancelar_venta') }}" style="display:inline;">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">Cancelar</button>
+  </form>
+</div>
+
+<!-- Indicador de pasos -->
+<div class="d-flex align-items-center gap-2 mb-4 small fw-semibold">
+  <span class="badge bg-primary px-3 py-2">1 · Libros</span>
+  <span class="text-muted">—</span>
+  <span class="badge bg-secondary px-3 py-2">2 · Cliente</span>
+  <span class="text-muted">—</span>
+  <span class="badge bg-secondary px-3 py-2">3 · Confirmar</span>
+</div>
+
+<form method="POST" id="formPaso1">
+
+  <!-- Barra de búsqueda -->
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnBuscar"
+      title="Buscar libro">
+      <i class="fa-solid fa-magnifying-glass"></i> Buscar
+    </button>
+    <input type="text" class="form-control form-control-sm d-none" id="campoBuscar"
+      placeholder="Nombre, autor, editorial o ISBN..." style="max-width:350px;">
+  </div>
+
+  <!-- Tabla de libros -->
+  <div class="table-responsive">
+    <table class="table table-hover align-middle" id="tablaLibros">
+      <thead class="table-dark">
+        <tr>
+          <th>Nombre</th>
+          <th>Autor</th>
+          <th>Editorial</th>
+          <th>ISBN</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th style="width:120px;">Cantidad</th>
+          <th class="text-end">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for libro in libros %}
+        <tr class="fila-libro"
+          data-nombre="{{ libro.nombre | lower }}"
+          data-autor="{{ libro.autor | lower }}"
+          data-editorial="{{ libro.editorial | lower }}"
+          data-isbn="{{ libro.isbn | lower }}">
+          <td>{{ libro.nombre }}</td>
+          <td class="text-muted small">{{ libro.autor }}</td>
+          <td class="text-muted small">{{ libro.editorial }}</td>
+          <td class="text-muted small">{{ libro.isbn }}</td>
+          <td>$ {{ "%.2f"|format(libro.precio) }}</td>
+          <td>
+            <span class="{{ 'text-danger fw-bold' if libro.stock <= 2 else ('text-warning fw-bold' if libro.stock <= 5 else '') }}">
+              {{ libro.stock }}
+            </span>
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm cantidad-input"
+              name="cantidad_{{ libro.id }}"
+              id="cant_{{ libro.id }}"
+              value="{{ cantidades_previas.get(libro.id, 0) }}"
+              min="0" max="{{ libro.stock }}"
+              data-precio="{{ libro.precio }}"
+              data-id="{{ libro.id }}">
+          </td>
+          <td class="text-end fw-semibold subtotal-celda" id="sub_{{ libro.id }}">
+            {% set prev = cantidades_previas.get(libro.id, 0) %}
+            {% if prev > 0 %}$ {{ "%.2f"|format(libro.precio * prev) }}{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No hay libros disponibles en inventario.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Resumen y navegación -->
+  <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+    <div>
+      <span class="text-muted me-3">Libros seleccionados: <strong id="contadorLibros">0</strong></span>
+      <span class="fs-5 fw-bold">Total: $ <span id="totalGeneral">0.00</span></span>
+    </div>
+    <button type="submit" class="btn btn-primary px-4">
+      Siguiente <i class="fa-solid fa-arrow-right ms-1"></i>
+    </button>
+  </div>
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Toggle barra de búsqueda
+  const btnBuscar   = document.getElementById('btnBuscar')
+  const campoBuscar = document.getElementById('campoBuscar')
+
+  btnBuscar.addEventListener('click', () => {
+    campoBuscar.classList.toggle('d-none')
+    if (!campoBuscar.classList.contains('d-none')) {
+      campoBuscar.focus()
+    } else {
+      campoBuscar.value = ''
+      filtrarFilas('')
+    }
+  })
+
+  campoBuscar.addEventListener('input', () => filtrarFilas(campoBuscar.value.trim().toLowerCase()))
+
+  function filtrarFilas(texto) {
+    document.querySelectorAll('.fila-libro').forEach(fila => {
+      const coincide = !texto
+        || fila.dataset.nombre.includes(texto)
+        || fila.dataset.autor.includes(texto)
+        || fila.dataset.editorial.includes(texto)
+        || fila.dataset.isbn.includes(texto)
+      fila.style.display = coincide ? '' : 'none'
+    })
+  }
+
+  // Cálculo de subtotales y total
+  const contador      = document.getElementById('contadorLibros')
+  const totalGeneral  = document.getElementById('totalGeneral')
+
+  function recalcular() {
+    let total = 0
+    let librosSeleccionados = 0
+
+    document.querySelectorAll('.cantidad-input').forEach(input => {
+      const cantidad = parseInt(input.value) || 0
+      const precio   = parseFloat(input.dataset.precio)
+      const id       = input.dataset.id
+      const celda    = document.getElementById('sub_' + id)
+
+      if (cantidad > 0) {
+        const sub = precio * cantidad
+        total += sub
+        librosSeleccionados++
+        celda.textContent = '$ ' + sub.toFixed(2)
+      } else {
+        celda.textContent = '—'
+      }
+    })
+
+    contador.textContent    = librosSeleccionados
+    totalGeneral.textContent = total.toFixed(2)
+  }
+
+  document.querySelectorAll('.cantidad-input').forEach(input => {
+    input.addEventListener('input', recalcular)
+  })
+
+  // Calcular totales iniciales (si hay cantidades previas)
+  recalcular()
+</script>
+{% endblock %}

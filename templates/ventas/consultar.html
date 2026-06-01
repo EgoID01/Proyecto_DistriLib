@@ -1,0 +1,93 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Consultar Ventas · DistriLib{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">Consultar Ventas</h1>
+  {% if current_user.es_admin() or current_user.es_vendedor() %}
+  <a href="{{ url_for('ventas.paso1_libros') }}" class="btn btn-primary btn-sm">
+    <i class="fa-solid fa-cart-plus me-1"></i> Nueva venta
+  </a>
+  {% endif %}
+</div>
+
+<!-- Búsqueda por cédula -->
+<form method="GET" class="d-flex gap-2 mb-4" style="max-width:400px;">
+  <div class="input-group">
+    <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+    <input type="text" class="form-control" name="cedula"
+      value="{{ cedula_busqueda }}"
+      placeholder="Buscar por cédula del cliente">
+  </div>
+  <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+  {% if cedula_busqueda %}
+  <a href="{{ url_for('ventas.consultar_ventas') }}" class="btn btn-outline-danger" title="Limpiar">
+    <i class="fa-solid fa-xmark"></i>
+  </a>
+  {% endif %}
+</form>
+
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Fecha y hora</th>
+        <th>Vendedor</th>
+        <th>Cliente</th>
+        <th>Cédula</th>
+        <th class="text-end">Total</th>
+        <th class="text-center">Estado</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for venta in ventas %}
+      <tr>
+        <td class="text-muted small">#{{ venta.id }}</td>
+        <td class="small">{{ venta.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td class="small">{{ venta.vendedor.nombres.split()[0] }} {{ venta.vendedor.nombres.split()[-1] }}</td>
+        <td>{{ venta.cliente.nombre_completo() }}</td>
+        <td class="text-muted small">{{ venta.cliente.cedula_ruc }}</td>
+        <td class="text-end fw-semibold">$ {{ "%.2f"|format(venta.total) }}</td>
+        <td class="text-center">
+          {% if venta.esta_activa() %}
+            <span class="badge bg-success">Activa</span>
+          {% else %}
+            <span class="badge bg-danger">Anulada</span>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          <div class="d-flex gap-1 justify-content-center">
+            <a href="{{ url_for('ventas.detalle_venta', id=venta.id) }}"
+               class="btn btn-sm btn-outline-primary" title="Ver detalle">
+              <i class="fa-solid fa-eye"></i>
+            </a>
+            {% if venta.esta_activa() %}
+            <form method="POST" action="{{ url_for('ventas.anular_venta', id=venta.id) }}"
+              style="display:inline;"
+              onsubmit="return confirm('¿Anular la venta #{{ venta.id }}? Se restaurará el stock de los libros.')">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Anular venta">
+                <i class="fa-solid fa-rectangle-xmark"></i>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" class="text-center text-muted py-4">
+          {% if cedula_busqueda %}
+            No se encontraron ventas para la cédula "{{ cedula_busqueda }}".
+          {% else %}
+            No hay ventas registradas.
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

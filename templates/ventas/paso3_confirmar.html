@@ -1,0 +1,119 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Nueva Venta · Confirmar{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">Nueva Venta</h1>
+  <form method="POST" action="{{ url_for('ventas.cancelar_venta') }}" style="display:inline;">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">Cancelar</button>
+  </form>
+</div>
+
+<!-- Indicador de pasos -->
+<div class="d-flex align-items-center gap-2 mb-4 small fw-semibold">
+  <span class="badge bg-secondary px-3 py-2">1 · Libros</span>
+  <span class="text-muted">—</span>
+  <span class="badge bg-secondary px-3 py-2">2 · Cliente</span>
+  <span class="text-muted">—</span>
+  <span class="badge bg-primary px-3 py-2">3 · Confirmar</span>
+</div>
+
+<div class="row g-4">
+
+  <!-- Libros seleccionados -->
+  <div class="col-12">
+    <div class="p-4 bg-white rounded shadow-sm border">
+      <h6 class="fw-semibold text-uppercase text-muted mb-3">
+        <i class="fa-solid fa-book me-1"></i> Libros seleccionados
+      </h6>
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Libro</th>
+            <th>ISBN</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-end">Precio unit.</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in libros %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ item.nombre }}</div>
+              <div class="text-muted small">{{ item.autor }}</div>
+            </td>
+            <td class="text-muted small">{{ item.isbn }}</td>
+            <td class="text-center">{{ item.cantidad }}</td>
+            <td class="text-end">$ {{ "%.2f"|format(item.precio) }}</td>
+            <td class="text-end fw-semibold">$ {{ "%.2f"|format(item.subtotal) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Información del cliente -->
+  <div class="col-md-6">
+    <div class="p-4 bg-white rounded shadow-sm border h-100">
+      <h6 class="fw-semibold text-uppercase text-muted mb-3">
+        <i class="fa-solid fa-user me-1"></i> Cliente
+        {% if cliente.es_nuevo %}
+          <span class="badge bg-info text-dark ms-2">Nuevo</span>
+        {% endif %}
+      </h6>
+      <table class="table table-sm mb-0">
+        <tr><td class="text-muted">Cédula / RUC</td><td><strong>{{ cliente.cedula_ruc }}</strong></td></tr>
+        <tr><td class="text-muted">Nombre</td><td>{{ cliente.nombres }} {{ cliente.apellidos }}</td></tr>
+        {% if cliente.direccion %}
+        <tr><td class="text-muted">Dirección</td><td>{{ cliente.direccion }}</td></tr>
+        {% endif %}
+        {% if cliente.telefono %}
+        <tr><td class="text-muted">Teléfono</td><td>{{ cliente.telefono }}</td></tr>
+        {% endif %}
+        {% if cliente.correo %}
+        <tr><td class="text-muted">Correo</td><td>{{ cliente.correo }}</td></tr>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+
+  <!-- Desglose financiero -->
+  <div class="col-md-6">
+    <div class="p-4 bg-white rounded shadow-sm border h-100">
+      <h6 class="fw-semibold text-uppercase text-muted mb-3">
+        <i class="fa-solid fa-receipt me-1"></i> Desglose
+      </h6>
+      <table class="table table-sm mb-0">
+        <tr>
+          <td class="text-muted">Subtotal</td>
+          <td class="text-end">$ {{ "%.2f"|format(subtotal) }}</td>
+        </tr>
+        <tr>
+          <td class="text-muted">IVA <span class="badge bg-light text-dark border">Exento</span></td>
+          <td class="text-end">$ 0.00</td>
+        </tr>
+        <tr class="table-dark">
+          <td class="fw-bold fs-5">TOTAL</td>
+          <td class="text-end fw-bold fs-5">$ {{ "%.2f"|format(total) }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Acciones -->
+<div class="d-flex gap-2 mt-4 pt-3 border-top">
+  <a href="{{ url_for('ventas.paso2_cliente') }}" class="btn btn-outline-secondary">
+    <i class="fa-solid fa-arrow-left me-1"></i> Volver
+  </a>
+  <form method="POST" action="{{ url_for('ventas.confirmar_venta') }}">
+    <button type="submit" class="btn btn-success px-4">
+      <i class="fa-solid fa-check me-1"></i> Confirmar venta
+    </button>
+  </form>
+</div>
+{% endblock %}

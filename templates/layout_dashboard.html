@@ -137,19 +137,15 @@
                   <span>Ventas</span>
                 </h6>
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if request.endpoint in ['ventas.paso1_libros', 'ventas.paso2_cliente', 'ventas.paso3_confirmar'] %}active{% endif %}"
+                     href="{{ url_for('ventas.paso1_libros') }}">
                     <i class="fa-solid fa-cart-plus text-secondary"></i>
                     Realizar venta
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
-                    <i class="fa-solid fa-rectangle-xmark text-secondary"></i>
-                    Anular venta
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if request.endpoint in ['ventas.consultar_ventas', 'ventas.detalle_venta'] %}active{% endif %}"
+                     href="{{ url_for('ventas.consultar_ventas') }}">
                     <i class="fa-solid fa-magnifying-glass text-secondary"></i>
                     Consultar ventas
                   </a>
