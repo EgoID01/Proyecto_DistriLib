@@ -22,7 +22,9 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Cédula</label>
             <input type="text" class="form-control" name="cedula" required
-              placeholder="Ej: 1234567890" maxlength="13">
+              placeholder="Ej: 1234567890"
+              pattern="\d{10}" title="La cédula debe tener exactamente 10 dígitos"
+              minlength="10" maxlength="10" inputmode="numeric">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Nombre de usuario</label>

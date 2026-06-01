@@ -39,7 +39,7 @@
     </thead>
     <tbody>
       {% for venta in ventas %}
-      <tr>
+      <tr {% if venta.estado == 'ANULADA' %}class="table-danger"{% endif %}>
         <td class="text-muted small">#{{ venta.id }}</td>
         <td class="small">{{ venta.fecha_venta.strftime('%H:%M:%S') }}</td>
         <td class="small">{{ venta.vendedor.nombres }}</td>

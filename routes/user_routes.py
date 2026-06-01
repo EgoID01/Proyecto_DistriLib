@@ -41,6 +41,10 @@ def crear_usuario():
             flash('Todos los campos son obligatorios.', 'warning')
             return render_template('usuarios/crear.html', roles=roles)
 
+        if not cedula.isdigit() or len(cedula) != 10:
+            flash('La cédula debe tener exactamente 10 dígitos.', 'danger')
+            return render_template('usuarios/crear.html', roles=roles)
+
         if len(password) < 6:
             flash('La contraseña debe tener al menos 6 caracteres.', 'warning')
             return render_template('usuarios/crear.html', roles=roles)
@@ -99,6 +103,10 @@ def editar_usuario(id):
 
         if not all([nombres, cedula, username, rol_id]):
             flash('Todos los campos son obligatorios.', 'warning')
+            return render_template('usuarios/editar.html', usuario=usuario, roles=roles)
+
+        if not cedula.isdigit() or len(cedula) != 10:
+            flash('La cédula debe tener exactamente 10 dígitos.', 'danger')
             return render_template('usuarios/editar.html', usuario=usuario, roles=roles)
 
         dup_username = Usuario.query.filter(

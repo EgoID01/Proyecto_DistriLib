@@ -94,6 +94,10 @@ def paso2_cliente():
             flash('Cédula/RUC, nombres y apellidos son obligatorios.', 'warning')
             return render_template('ventas/paso2_cliente.html', cliente=cliente_previo)
 
+        if not cedula_ruc.isdigit() or len(cedula_ruc) not in (10, 13):
+            flash('La cédula debe tener exactamente 10 dígitos o el RUC 13 dígitos.', 'danger')
+            return render_template('ventas/paso2_cliente.html', cliente=cliente_previo)
+
         cliente_existente = Cliente.query.filter_by(cedula_ruc=cedula_ruc).first()
 
         session[SESSION_CLIENTE] = {

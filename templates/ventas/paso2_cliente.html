@@ -29,7 +29,8 @@
         <div class="input-group">
           <input type="text" class="form-control" id="campoCedula"
             placeholder="Ej: 1234567890"
-            pattern="\d{10,13}" title="Ingresa entre 10 y 13 dígitos"
+            pattern="\d{10}|\d{13}" title="Cédula: 10 dígitos · RUC: 13 dígitos"
+            minlength="10" maxlength="13" inputmode="numeric"
             value="{{ cliente.get('cedula_ruc', '') }}">
           <button type="button" class="btn btn-outline-secondary" id="btnBuscarCliente"
             title="Buscar cliente">
@@ -110,10 +111,18 @@
     Object.values(campos).forEach(c => { c.value = ''; c.readOnly = false })
   }
 
+  function longitudValida(valor) {
+    return valor.length === 10 || valor.length === 13
+  }
+
   btnBuscar.addEventListener('click', () => {
     const cedula = campoCedula.value.trim()
     if (!cedula) {
       mostrarAlerta('warning', 'Ingresa una cédula o RUC antes de buscar.')
+      return
+    }
+    if (!/^\d+$/.test(cedula) || !longitudValida(cedula)) {
+      mostrarAlerta('warning', 'La cédula debe tener exactamente 10 dígitos o el RUC 13 dígitos.')
       return
     }
 
@@ -139,8 +148,14 @@
   })
 
   // Sincronizar cédula hidden con el campo visible al enviar
-  document.getElementById('formCliente').addEventListener('submit', () => {
-    cedulaHidden.value = campoCedula.value.trim()
+  document.getElementById('formCliente').addEventListener('submit', (e) => {
+    const cedula = campoCedula.value.trim()
+    if (!/^\d+$/.test(cedula) || !longitudValida(cedula)) {
+      e.preventDefault()
+      mostrarAlerta('warning', 'La cédula debe tener exactamente 10 dígitos o el RUC 13 dígitos.')
+      return
+    }
+    cedulaHidden.value = cedula
     Object.values(campos).forEach(c => c.readOnly = false)
   })
 

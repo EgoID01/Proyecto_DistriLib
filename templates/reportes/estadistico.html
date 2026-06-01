@@ -5,7 +5,15 @@
 {% block page_content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
   <h1 class="h2">Estadístico de Ventas</h1>
-  <span class="text-muted small">Año {{ año }}</span>
+  <div class="d-flex align-items-center gap-2">
+    <label class="text-muted small mb-0" for="selectAño">Año:</label>
+    <select id="selectAño" class="form-select form-select-sm" style="width:auto;"
+            onchange="location.href='{{ url_for('reportes.estadistico') }}?año='+this.value">
+      {% for a in años_disponibles %}
+        <option value="{{ a }}" {{ 'selected' if a == año }}>{{ a }}</option>
+      {% endfor %}
+    </select>
+  </div>
 </div>
 
 <!-- Resumen rápido -->

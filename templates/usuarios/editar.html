@@ -22,7 +22,9 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Cédula</label>
             <input type="text" class="form-control" name="cedula" required
-              value="{{ usuario.cedula }}">
+              value="{{ usuario.cedula }}"
+              pattern="\d{10}" title="La cédula debe tener exactamente 10 dígitos"
+              minlength="10" maxlength="10" inputmode="numeric">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Nombre de usuario</label>

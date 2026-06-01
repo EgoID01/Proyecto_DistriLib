@@ -112,8 +112,6 @@
 
   </div>
 
-  <h2 class="chart-title">Ventas por mes</h2>
-  <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
 {% endblock %}
 
 {% block modals %}
@@ -146,6 +144,5 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script src="{{ url_for('static', filename='js/chart.umd.js') }}"></script>
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
