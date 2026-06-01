@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}DistriLib{% endblock %}</title>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
     {% block extra_css %}{% endblock %}
@@ -150,6 +151,13 @@
                     Consultar ventas
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if request.endpoint in ['clientes.listar_clientes', 'clientes.editar_cliente'] %}active{% endif %}"
+                     href="{{ url_for('clientes.listar_clientes') }}">
+                    <i class="fa-solid fa-address-book text-secondary"></i>
+                    Gestionar clientes
+                  </a>
+                </li>
                 {% endif %}
 
                 <!-- INVENTARIO — todos los roles -->
@@ -187,16 +195,42 @@
                   <span>Reportes</span>
                 </h6>
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <a class="nav-link d-flex align-items-center gap-2 {% if request.endpoint == 'reportes.estadistico' %}active{% endif %}"
+                     href="{{ url_for('reportes.estadistico') }}">
                     <i class="fa-solid fa-chart-line text-secondary"></i>
                     Consultar estadístico de ventas
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <a class="nav-link d-flex align-items-center gap-2"
+                     href="#submenuReportes"
+                     data-bs-toggle="collapse"
+                     role="button"
+                     aria-expanded="{{ 'true' if request.endpoint in ['reportes.reporte_ventas', 'reportes.reporte_inventario'] else 'false' }}"
+                     aria-controls="submenuReportes">
                     <i class="fa-solid fa-file-invoice text-secondary"></i>
                     Ver reportes
+                    <i class="fa-solid fa-chevron-down ms-auto sidebar-chevron small"></i>
                   </a>
+                  <div class="collapse {{ 'show' if request.endpoint in ['reportes.reporte_ventas', 'reportes.reporte_inventario'] else '' }}"
+                       id="submenuReportes">
+                    <ul class="nav flex-column ms-3 mt-1">
+                      <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2 py-1 {% if request.endpoint == 'reportes.reporte_ventas' %}active{% endif %}"
+                           href="{{ url_for('reportes.reporte_ventas') }}">
+                          <i class="fa-solid fa-cart-shopping text-secondary"></i>
+                          Ventas
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2 py-1 {% if request.endpoint == 'reportes.reporte_inventario' %}active{% endif %}"
+                           href="{{ url_for('reportes.reporte_inventario') }}">
+                          <i class="fa-solid fa-boxes-stacked text-secondary"></i>
+                          Inventario
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
                 </li>
                 {% endif %}
 

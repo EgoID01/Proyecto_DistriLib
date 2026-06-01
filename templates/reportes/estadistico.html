@@ -1,0 +1,111 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Estadístico de Ventas · DistriLib{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">Estadístico de Ventas</h1>
+  <span class="text-muted small">Año {{ año }}</span>
+</div>
+
+<!-- Resumen rápido -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="p-3 bg-white rounded shadow-sm border text-center">
+      <div class="text-muted small text-uppercase fw-semibold">Total vendido {{ año }}</div>
+      <div class="fs-3 fw-bold text-success mt-1">$ {{ "%.2f"|format(total_año) }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Gráfico de líneas: ventas mensuales -->
+  <div class="col-12">
+    <div class="p-4 bg-white rounded shadow-sm border">
+      <h6 class="fw-semibold text-uppercase text-muted mb-3">
+        <i class="fa-solid fa-chart-line me-1"></i> Ventas mensuales — {{ año }}
+      </h6>
+      <canvas id="chartVentasMensuales" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- Gráfico de barras: top 5 libros -->
+  <div class="col-md-7">
+    <div class="p-4 bg-white rounded shadow-sm border">
+      <h6 class="fw-semibold text-uppercase text-muted mb-3">
+        <i class="fa-solid fa-ranking-star me-1"></i> Top 5 libros más vendidos
+      </h6>
+      <canvas id="chartTopLibros" height="180"></canvas>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chart.umd.js') }}"></script>
+<script>
+  const meses        = {{ meses | safe }}
+  const ventasMes    = {{ ventas_por_mes | safe }}
+  const nombresTop   = {{ nombres_top | safe }}
+  const cantidadesTop = {{ cantidades_top | safe }}
+
+  // Gráfico de líneas — ventas mensuales
+  new Chart(document.getElementById('chartVentasMensuales'), {
+    type: 'line',
+    data: {
+      labels: meses,
+      datasets: [{
+        data: ventasMes,
+        borderColor: '#a855f7',
+        backgroundColor: 'rgba(168,85,247,0.08)',
+        borderWidth: 3,
+        pointBackgroundColor: '#a855f7',
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: val => '$ ' + val.toLocaleString('es-EC', { minimumFractionDigits: 2 })
+          }
+        }
+      }
+    }
+  })
+
+  // Gráfico de barras — top 5 libros
+  new Chart(document.getElementById('chartTopLibros'), {
+    type: 'bar',
+    data: {
+      labels: nombresTop,
+      datasets: [{
+        data: cantidadesTop,
+        backgroundColor: [
+          'rgba(168,85,247,0.7)',
+          'rgba(99,102,241,0.7)',
+          'rgba(59,130,246,0.7)',
+          'rgba(16,185,129,0.7)',
+          'rgba(245,158,11,0.7)',
+        ],
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  })
+</script>
+{% endblock %}

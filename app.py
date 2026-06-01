@@ -71,10 +71,14 @@ def crear_app():
     from routes.user_routes import usuarios_bp
     from routes.inventory_routes import inventario_bp
     from routes.sales_routes import ventas_bp
+    from routes.reports_routes import reportes_bp
+    from routes.client_routes import clientes_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(usuarios_bp)
     app.register_blueprint(inventario_bp)
     app.register_blueprint(ventas_bp)
+    app.register_blueprint(reportes_bp)
+    app.register_blueprint(clientes_bp)
 
     @app.route('/')
     def index():

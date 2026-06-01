@@ -1,0 +1,200 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Reportes de Inventario · DistriLib{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">Reportes de Inventario</h1>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'general' }}"
+       href="{{ url_for('reportes.reporte_inventario', tab='general') }}">
+      General
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'criticos' }}"
+       href="{{ url_for('reportes.reporte_inventario', tab='criticos') }}">
+      Stock crítico
+      {% if libros_criticos %}<span class="badge bg-danger ms-1">{{ libros_criticos|length }}</span>{% endif %}
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'bajo' }}"
+       href="{{ url_for('reportes.reporte_inventario', tab='bajo') }}">
+      Stock bajo
+      {% if libros_bajo %}<span class="badge bg-warning text-dark ms-1">{{ libros_bajo|length }}</span>{% endif %}
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'agotados' }}"
+       href="{{ url_for('reportes.reporte_inventario', tab='agotados') }}">
+      Agotados
+      {% if libros_agotados %}<span class="badge bg-secondary ms-1">{{ libros_agotados|length }}</span>{% endif %}
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'movimientos' }}"
+       href="{{ url_for('reportes.reporte_inventario', tab='movimientos') }}">
+      Movimientos
+    </a>
+  </li>
+</ul>
+
+<!-- Tab: General -->
+{% if tab_activa == 'general' %}
+<div class="table-responsive">
+  <div class="mb-2 text-muted small">{{ libros_general|length }} libro(s) registrado(s)</div>
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Nombre</th><th>Autor</th><th>ISBN</th>
+        <th class="text-end">Precio</th>
+        <th class="text-center">Stock</th>
+        <th class="text-center">Estado</th>
+        <th class="text-center">Alerta</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for libro in libros_general %}
+      {% set alerta = libro.nivel_alerta() %}
+      <tr>
+        <td class="fw-semibold">{{ libro.nombre }}</td>
+        <td class="text-muted small">{{ libro.autor }}</td>
+        <td class="text-muted small">{{ libro.isbn }}</td>
+        <td class="text-end">$ {{ "%.2f"|format(libro.precio) }}</td>
+        <td class="text-center fw-bold {{ 'text-danger' if alerta == 'ALERTA_ROJA' else ('text-warning' if alerta == 'ALERTA_AMARILLA' else 'text-success') }}">
+          {{ libro.stock }}
+        </td>
+        <td class="text-center">
+          {% if libro.activo %}<span class="badge bg-success">Activo</span>
+          {% else %}<span class="badge bg-secondary">Inactivo</span>{% endif %}
+        </td>
+        <td class="text-center">
+          {% if alerta == 'ALERTA_ROJA' %}<span class="badge bg-danger">Crítico</span>
+          {% elif alerta == 'ALERTA_AMARILLA' %}<span class="badge bg-warning text-dark">Bajo</span>
+          {% else %}<span class="text-muted small">—</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-3">Sin libros registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tab: Stock crítico (1–2 unidades) -->
+{% elif tab_activa == 'criticos' %}
+<div class="table-responsive">
+  <div class="mb-2 text-muted small">{{ libros_criticos|length }} libro(s) con stock crítico (1–2 unidades)</div>
+  <table class="table table-sm table-danger align-middle">
+    <thead class="table-dark">
+      <tr><th>Nombre</th><th>Autor</th><th>ISBN</th><th class="text-center">Stock</th></tr>
+    </thead>
+    <tbody>
+      {% for libro in libros_criticos %}
+      <tr>
+        <td class="fw-semibold">{{ libro.nombre }}</td>
+        <td class="text-muted small">{{ libro.autor }}</td>
+        <td class="text-muted small">{{ libro.isbn }}</td>
+        <td class="text-center fw-bold text-danger">{{ libro.stock }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">No hay libros con stock crítico.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tab: Stock bajo (3–5 unidades) -->
+{% elif tab_activa == 'bajo' %}
+<div class="table-responsive">
+  <div class="mb-2 text-muted small">{{ libros_bajo|length }} libro(s) con stock bajo (3–5 unidades)</div>
+  <table class="table table-sm table-warning align-middle">
+    <thead class="table-dark">
+      <tr><th>Nombre</th><th>Autor</th><th>ISBN</th><th class="text-center">Stock</th></tr>
+    </thead>
+    <tbody>
+      {% for libro in libros_bajo %}
+      <tr>
+        <td class="fw-semibold">{{ libro.nombre }}</td>
+        <td class="text-muted small">{{ libro.autor }}</td>
+        <td class="text-muted small">{{ libro.isbn }}</td>
+        <td class="text-center fw-bold text-warning">{{ libro.stock }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">No hay libros con stock bajo.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tab: Agotados (0 unidades) -->
+{% elif tab_activa == 'agotados' %}
+<div class="table-responsive">
+  <div class="mb-2 text-muted small">{{ libros_agotados|length }} libro(s) sin unidades en stock</div>
+  <table class="table table-sm align-middle">
+    <thead class="table-dark">
+      <tr><th>Nombre</th><th>Autor</th><th>ISBN</th><th class="text-center">Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for libro in libros_agotados %}
+      <tr>
+        <td class="fw-semibold">{{ libro.nombre }}</td>
+        <td class="text-muted small">{{ libro.autor }}</td>
+        <td class="text-muted small">{{ libro.isbn }}</td>
+        <td class="text-center">
+          {% if libro.activo %}<span class="badge bg-success">Activo</span>
+          {% else %}<span class="badge bg-secondary">Inactivo</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">No hay libros agotados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tab: Movimientos -->
+{% elif tab_activa == 'movimientos' %}
+<div class="table-responsive">
+  <div class="mb-2 text-muted small">Últimos {{ movimientos|length }} movimientos registrados</div>
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Fecha</th><th>Libro</th>
+        <th class="text-center">Tipo</th>
+        <th class="text-center">Cantidad</th>
+        <th>Usuario</th><th>Motivo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mov in movimientos %}
+      <tr>
+        <td class="small">{{ mov.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td class="fw-semibold small">{{ mov.libro.nombre }}</td>
+        <td class="text-center">
+          <span class="badge
+            {% if mov.tipo_movimiento == 'ENTRADA' %}bg-success
+            {% elif mov.tipo_movimiento == 'VENTA' %}bg-primary
+            {% elif mov.tipo_movimiento == 'ANULACION' %}bg-warning text-dark
+            {% else %}bg-secondary{% endif %}">
+            {{ mov.tipo_movimiento }}
+          </span>
+        </td>
+        <td class="text-center fw-semibold">{{ mov.cantidad }}</td>
+        <td class="text-muted small">{{ mov.usuario.nombres.split()[0] }}</td>
+        <td class="text-muted small">{{ mov.motivo or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center text-muted py-3">Sin movimientos registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

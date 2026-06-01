@@ -17,7 +17,7 @@ class Cliente(db.Model):
     direccion = db.Column(db.String(200), nullable=True)
     telefono = db.Column(db.String(20), nullable=True)
     correo = db.Column(db.String(100), nullable=True)
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha_registro = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     # Relación: un cliente puede tener muchas ventas
     ventas = db.relationship('Venta', backref='cliente', lazy=True)

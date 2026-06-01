@@ -15,7 +15,7 @@ class Libro(db.Model):
     isbn = db.Column(db.String(20), nullable=False, unique=True)
     precio = db.Column(db.Numeric(10, 2), nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=0)
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha_registro = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     # False cuando el libro es eliminado lógicamente (no se borra físicamente)
     activo = db.Column(db.Boolean, default=True, nullable=False)
@@ -57,11 +57,14 @@ class Libro(db.Model):
     def nivel_alerta(self):
         """
         Retorna el tipo de alerta según el stock actual.
-        Retorna 'ALERTA_ROJA' si stock <= 2,
+        Retorna 'AGOTADO' si stock == 0,
+        'ALERTA_ROJA' si stock entre 1 y 2,
         'ALERTA_AMARILLA' si stock entre 3 y 5,
         o None si no hay alerta.
         """
-        if self.stock <= 2:
+        if self.stock == 0:
+            return 'AGOTADO'
+        elif self.stock <= 2:
             return 'ALERTA_ROJA'
         elif self.stock <= 5:
             return 'ALERTA_AMARILLA'
@@ -88,7 +91,7 @@ class MovimientoInventario(db.Model):
 
     cantidad = db.Column(db.Integer, nullable=False)
     motivo = db.Column(db.Text, nullable=True)
-    fecha = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     def __repr__(self):
         return f'<Movimiento {self.tipo_movimiento} | Libro: {self.libro_id} | Cant: {self.cantidad}>'

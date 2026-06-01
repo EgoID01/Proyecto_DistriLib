@@ -12,21 +12,44 @@
   {% endif %}
 </div>
 
-<!-- Búsqueda por cédula -->
-<form method="GET" class="d-flex gap-2 mb-4" style="max-width:400px;">
-  <div class="input-group">
-    <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-    <input type="text" class="form-control" name="cedula"
-      value="{{ cedula_busqueda }}"
-      placeholder="Buscar por cédula del cliente">
+<!-- Filtros -->
+<form method="GET" class="p-3 bg-white rounded shadow-sm border mb-4">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Cédula del cliente</label>
+      <input type="text" class="form-control form-control-sm" name="cedula"
+        value="{{ cedula_busqueda }}" placeholder="Ej: 1234567890">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Desde</label>
+      <input type="date" class="form-control form-control-sm" name="fecha_desde"
+        value="{{ fecha_desde }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-semibold mb-1">Hasta</label>
+      <input type="date" class="form-control form-control-sm" name="fecha_hasta"
+        value="{{ fecha_hasta }}">
+    </div>
+    <div class="col-md-auto">
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-filter me-1"></i> Filtrar
+      </button>
+      {% if cedula_busqueda or fecha_desde or fecha_hasta %}
+      <a href="{{ url_for('ventas.consultar_ventas') }}" class="btn btn-outline-secondary btn-sm ms-1">
+        Limpiar
+      </a>
+      {% endif %}
+    </div>
   </div>
-  <button type="submit" class="btn btn-outline-secondary">Buscar</button>
-  {% if cedula_busqueda %}
-  <a href="{{ url_for('ventas.consultar_ventas') }}" class="btn btn-outline-danger" title="Limpiar">
-    <i class="fa-solid fa-xmark"></i>
-  </a>
-  {% endif %}
 </form>
+
+<!-- Resultados -->
+{% if ventas %}
+<div class="text-muted small mb-2">
+  {{ ventas|length }} venta(s) encontrada(s) ·
+  Total activas: <strong>$ {{ "%.2f"|format(ventas | selectattr('estado', 'equalto', 'ACTIVA') | sum(attribute='total')) }}</strong>
+</div>
+{% endif %}
 
 <div class="table-responsive">
   <table class="table table-hover align-middle">
@@ -79,11 +102,7 @@
       {% else %}
       <tr>
         <td colspan="8" class="text-center text-muted py-4">
-          {% if cedula_busqueda %}
-            No se encontraron ventas para la cédula "{{ cedula_busqueda }}".
-          {% else %}
-            No hay ventas registradas.
-          {% endif %}
+          No se encontraron ventas con los filtros aplicados.
         </td>
       </tr>
       {% endfor %}

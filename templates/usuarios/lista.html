@@ -52,18 +52,22 @@
             {% endif %}
           </td>
           <td>
-            {% if u.username != 'admin' and u.id != current_user.id %}
-              <form method="POST"
-                    action="{{ url_for('usuarios.toggle_activo', id=u.id) }}"
-                    style="display:inline;">
-                <button type="submit"
-                  class="btn btn-sm {{ 'btn-outline-danger' if u.activo else 'btn-outline-success' }}">
-                  {{ 'Desactivar' if u.activo else 'Activar' }}
-                </button>
-              </form>
-            {% else %}
-              <span class="text-muted small">—</span>
-            {% endif %}
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('usuarios.editar_usuario', id=u.id) }}"
+                 class="btn btn-sm btn-outline-primary" title="Editar">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+              {% if u.username != 'admin' and u.id != current_user.id %}
+                <form method="POST"
+                      action="{{ url_for('usuarios.toggle_activo', id=u.id) }}"
+                      style="display:inline;">
+                  <button type="submit"
+                    class="btn btn-sm {{ 'btn-outline-danger' if u.activo else 'btn-outline-success' }}">
+                    {{ 'Desactivar' if u.activo else 'Activar' }}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% else %}

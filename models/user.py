@@ -42,7 +42,7 @@ class Usuario(UserMixin, db.Model):
     # False si el administrador desactiva la cuenta
     activo = db.Column(db.Boolean, default=True, nullable=False)
 
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     # Token único por sesión — se regenera al cambiar contraseña para invalidar cookies viejas
     session_token = db.Column(db.String(36), nullable=False, default=lambda: str(uuid.uuid4()))

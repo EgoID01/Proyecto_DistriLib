@@ -77,6 +77,9 @@
             {% if prev > 0 %}$ {{ "%.2f"|format(libro.precio * prev) }}{% else %}—{% endif %}
           </td>
         </tr>
+        <tr id="sinResultados" style="display:none;">
+          <td colspan="8" class="text-center text-muted py-3">No se encontraron libros con ese criterio.</td>
+        </tr>
         {% else %}
         <tr><td colspan="8" class="text-center text-muted py-4">No hay libros disponibles en inventario.</td></tr>
         {% endfor %}
@@ -117,6 +120,7 @@
   campoBuscar.addEventListener('input', () => filtrarFilas(campoBuscar.value.trim().toLowerCase()))
 
   function filtrarFilas(texto) {
+    let visibles = 0
     document.querySelectorAll('.fila-libro').forEach(fila => {
       const coincide = !texto
         || fila.dataset.nombre.includes(texto)
@@ -124,7 +128,10 @@
         || fila.dataset.editorial.includes(texto)
         || fila.dataset.isbn.includes(texto)
       fila.style.display = coincide ? '' : 'none'
+      if (coincide) visibles++
     })
+    const sinResultados = document.getElementById('sinResultados')
+    if (sinResultados) sinResultados.style.display = (texto && visibles === 0) ? '' : 'none'
   }
 
   // Cálculo de subtotales y total

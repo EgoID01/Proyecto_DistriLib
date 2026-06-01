@@ -7,12 +7,12 @@
 }
 
 .question-card:hover {
-    border-color: #3498db;
-    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
+    border-color: #247cee;
+    box-shadow: 0 2px 8px rgba(36, 124, 238, 0.15);
 }
 
 .question-number {
-    background-color: #3498db;
+    background-color: #247cee;
     color: white;
     width: 30px;
     height: 30px;
@@ -38,7 +38,7 @@
 }
 
 .step-number {
-    background-color: #3498db;
+    background-color: #247cee;
     color: white;
     width: 30px;
     height: 30px;
@@ -51,11 +51,11 @@
 }
 
 .step.completed .step-number {
-    background-color: #27ae60;
+    background-color: #00acc1;
 }
 
 .step.active .step-number {
-    background-color: #f39c12;
+    background-color: #541acc;
 }
 
 .step-label {

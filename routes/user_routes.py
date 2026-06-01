@@ -80,6 +80,57 @@ def crear_usuario():
     return render_template('usuarios/crear.html', roles=roles)
 
 
+@usuarios_bp.route('/<int:id>/editar', methods=['GET', 'POST'])
+@login_required
+@solo_admin
+def editar_usuario(id):
+    pendiente = redirigir_segun_estado()
+    if pendiente:
+        return pendiente
+
+    usuario = Usuario.query.get_or_404(id)
+    roles = Rol.query.all()
+
+    if request.method == 'POST':
+        nombres  = request.form.get('nombres', '').strip()
+        cedula   = request.form.get('cedula', '').strip()
+        username = request.form.get('username', '').strip()
+        rol_id   = request.form.get('rol_id', '').strip()
+
+        if not all([nombres, cedula, username, rol_id]):
+            flash('Todos los campos son obligatorios.', 'warning')
+            return render_template('usuarios/editar.html', usuario=usuario, roles=roles)
+
+        dup_username = Usuario.query.filter(
+            Usuario.username == username, Usuario.id != id
+        ).first()
+        if dup_username:
+            flash(f'El nombre de usuario "{username}" ya está en uso.', 'danger')
+            return render_template('usuarios/editar.html', usuario=usuario, roles=roles)
+
+        dup_cedula = Usuario.query.filter(
+            Usuario.cedula == cedula, Usuario.id != id
+        ).first()
+        if dup_cedula:
+            flash('Ya existe otro usuario con esa cédula.', 'danger')
+            return render_template('usuarios/editar.html', usuario=usuario, roles=roles)
+
+        try:
+            usuario.nombres  = nombres
+            usuario.cedula   = cedula
+            usuario.username = username
+            usuario.rol_id   = int(rol_id)
+            db.session.commit()
+            flash(f'Usuario "{username}" actualizado correctamente.', 'success')
+            return redirect(url_for('usuarios.listar_usuarios'))
+        except Exception:
+            db.session.rollback()
+            flash('Error al actualizar el usuario. Intenta de nuevo.', 'danger')
+            return render_template('usuarios/editar.html', usuario=usuario, roles=roles)
+
+    return render_template('usuarios/editar.html', usuario=usuario, roles=roles)
+
+
 @usuarios_bp.route('/<int:id>/toggle-activo', methods=['POST'])
 @login_required
 @solo_admin

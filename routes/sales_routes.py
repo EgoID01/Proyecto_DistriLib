@@ -269,6 +269,26 @@ def cancelar_venta():
     return redirect(url_for('auth.dashboard'))
 
 
+# ── Ventas del día ───────────────────────────────────────────────────────────
+
+@ventas_bp.route('/hoy')
+@login_required
+@verificar_rol('ADMIN', 'VENDEDOR')
+def ventas_hoy():
+    pendiente = redirigir_segun_estado()
+    if pendiente:
+        return pendiente
+
+    from datetime import date
+    from sqlalchemy import func as sqlfunc
+    hoy = date.today()
+    ventas = Venta.query.filter(
+        sqlfunc.date(Venta.fecha_venta) == hoy
+    ).order_by(Venta.fecha_venta.desc()).all()
+    total = sum(float(v.total) for v in ventas if v.esta_activa())
+    return render_template('ventas/hoy.html', ventas=ventas, total=total, fecha=hoy)
+
+
 # ── Consultar ventas ──────────────────────────────────────────────────────────
 
 @ventas_bp.route('/consultar')
@@ -280,16 +300,25 @@ def consultar_ventas():
         return pendiente
 
     cedula_busqueda = request.args.get('cedula', '').strip()
+    fecha_desde     = request.args.get('fecha_desde', '').strip()
+    fecha_hasta     = request.args.get('fecha_hasta', '').strip()
 
     query = Venta.query.join(Cliente)
+
     if cedula_busqueda:
         query = query.filter(Cliente.cedula_ruc.ilike(f'%{cedula_busqueda}%'))
+    if fecha_desde:
+        query = query.filter(Venta.fecha_venta >= fecha_desde)
+    if fecha_hasta:
+        query = query.filter(Venta.fecha_venta <= fecha_hasta + ' 23:59:59')
 
     ventas = query.order_by(Venta.fecha_venta.desc()).all()
 
     return render_template('ventas/consultar.html',
                            ventas=ventas,
-                           cedula_busqueda=cedula_busqueda)
+                           cedula_busqueda=cedula_busqueda,
+                           fecha_desde=fecha_desde,
+                           fecha_hasta=fecha_hasta)
 
 
 # ── Detalle de venta ──────────────────────────────────────────────────────────

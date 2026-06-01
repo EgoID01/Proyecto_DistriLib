@@ -287,7 +287,7 @@ def notificaciones_json():
     mov_query = MovimientoInventario.query
     if corte:
         mov_query = mov_query.filter(MovimientoInventario.fecha > corte)
-    movimientos = mov_query.order_by(MovimientoInventario.fecha.desc()).limit(5).all()
+    movimientos = mov_query.order_by(MovimientoInventario.fecha.desc()).limit(50).all()
 
     if corte:
         libros_con_mov = (
@@ -295,11 +295,11 @@ def notificaciones_json():
             .filter(MovimientoInventario.fecha > corte)
             .subquery()
         )
-        libros_roja = Libro.query.filter(Libro.stock <= 2, Libro.id.in_(libros_con_mov)).order_by(Libro.stock.asc()).all()
-        libros_amarilla = Libro.query.filter(Libro.stock > 2, Libro.stock <= 5, Libro.id.in_(libros_con_mov)).order_by(Libro.stock.asc()).all()
+        libros_roja = Libro.query.filter(Libro.stock >= 1, Libro.stock <= 2, Libro.id.in_(libros_con_mov)).order_by(Libro.stock.asc()).all()
+        libros_amarilla = Libro.query.filter(Libro.stock >= 3, Libro.stock <= 5, Libro.id.in_(libros_con_mov)).order_by(Libro.stock.asc()).all()
     else:
-        libros_roja = Libro.query.filter(Libro.stock <= 2).order_by(Libro.stock.asc()).all()
-        libros_amarilla = Libro.query.filter(Libro.stock > 2, Libro.stock <= 5).order_by(Libro.stock.asc()).all()
+        libros_roja = Libro.query.filter(Libro.stock >= 1, Libro.stock <= 2).order_by(Libro.stock.asc()).all()
+        libros_amarilla = Libro.query.filter(Libro.stock >= 3, Libro.stock <= 5).order_by(Libro.stock.asc()).all()
 
     return jsonify({
         'total_alertas': len(libros_roja) + len(libros_amarilla),
@@ -328,7 +328,7 @@ def limpiar_notificaciones():
         flash('Acceso denegado.', 'danger')
         return redirect(url_for('auth.dashboard'))
     config = ConfiguracionSistema.obtener()
-    config.notif_limpiadas_en = datetime.utcnow()
+    config.notif_limpiadas_en = datetime.now()
     db.session.commit()
     flash('Notificaciones borradas correctamente.', 'success')
     return redirect(url_for('auth.dashboard'))
@@ -345,8 +345,17 @@ def dashboard():
     if pendiente:
         return pendiente
 
+    from datetime import date
+    from sqlalchemy import func as sqlfunc
     from models.book import Libro, MovimientoInventario
+    from models.sale import Venta
     from models.user import ConfiguracionSistema
+
+    hoy = date.today()
+    total_hoy = db.session.query(sqlfunc.sum(Venta.total)).filter(
+        sqlfunc.date(Venta.fecha_venta) == hoy,
+        Venta.estado == 'ACTIVA'
+    ).scalar() or 0
 
     config = ConfiguracionSistema.obtener()
     corte = config.notif_limpiadas_en
@@ -354,7 +363,7 @@ def dashboard():
     mov_query = MovimientoInventario.query
     if corte:
         mov_query = mov_query.filter(MovimientoInventario.fecha > corte)
-    movimientos_recientes = mov_query.order_by(MovimientoInventario.fecha.desc()).limit(5).all()
+    movimientos_recientes = mov_query.order_by(MovimientoInventario.fecha.desc()).limit(50).all()
 
     # Alertas de stock: solo libros con actividad posterior al último borrado
     if corte:
@@ -383,4 +392,5 @@ def dashboard():
         libros_amarilla=libros_amarilla,
         movimientos_recientes=movimientos_recientes,
         total_alertas=total_alertas,
+        total_hoy=total_hoy,
     )

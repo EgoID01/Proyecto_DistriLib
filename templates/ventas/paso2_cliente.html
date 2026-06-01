@@ -28,7 +28,8 @@
         <label class="form-label fw-semibold">Cédula / RUC</label>
         <div class="input-group">
           <input type="text" class="form-control" id="campoCedula"
-            placeholder="Ingresa la cédula o RUC del cliente"
+            placeholder="Ej: 1234567890"
+            pattern="\d{10,13}" title="Ingresa entre 10 y 13 dígitos"
             value="{{ cliente.get('cedula_ruc', '') }}">
           <button type="button" class="btn btn-outline-secondary" id="btnBuscarCliente"
             title="Buscar cliente">

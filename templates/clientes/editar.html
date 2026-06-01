@@ -1,0 +1,91 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Editar Cliente · DistriLib{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">Editar Cliente</h1>
+  <a href="{{ url_for('clientes.listar_clientes') }}" class="btn btn-secondary">
+    <i class="fa-solid fa-arrow-left me-1"></i> Volver
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="p-4 bg-white rounded shadow-sm border">
+      <div class="mb-4">
+        <label class="form-label fw-semibold text-muted small">Cédula / RUC</label>
+        <input type="text" class="form-control" value="{{ cliente.cedula_ruc }}" disabled>
+        <div class="form-text">La cédula/RUC no se puede modificar.</div>
+      </div>
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Nombres</label>
+            <input type="text" class="form-control" name="nombres" required
+              value="{{ cliente.nombres }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Apellidos</label>
+            <input type="text" class="form-control" name="apellidos" required
+              value="{{ cliente.apellidos }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Dirección <span class="text-muted fw-normal">(opcional)</span></label>
+            <input type="text" class="form-control" name="direccion"
+              value="{{ cliente.direccion or '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Teléfono <span class="text-muted fw-normal">(opcional)</span></label>
+            <input type="text" class="form-control" name="telefono"
+              value="{{ cliente.telefono or '' }}"
+              pattern="\d{7,15}" title="Solo dígitos, entre 7 y 15 caracteres">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Correo <span class="text-muted fw-normal">(opcional)</span></label>
+            <input type="email" class="form-control" name="correo"
+              value="{{ cliente.correo or '' }}">
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Guardar cambios
+          </button>
+          <a href="{{ url_for('clientes.listar_clientes') }}" class="btn btn-outline-secondary">
+            Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Historial de ventas del cliente -->
+  {% if cliente.ventas %}
+  <div class="col-md-5 ms-md-3 mt-3 mt-md-0">
+    <div class="p-4 bg-white rounded shadow-sm border">
+      <h6 class="fw-semibold text-uppercase text-muted mb-3">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Últimas compras
+      </h6>
+      {% set ventas_ordenadas = cliente.ventas | sort(attribute='fecha_venta', reverse=True) %}
+      {% for venta in ventas_ordenadas[:5] %}
+      <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+        <div>
+          <div class="small fw-semibold">#{{ venta.id }} · {{ venta.fecha_venta.strftime('%d/%m/%Y') }}</div>
+          <div class="text-muted small">
+            {% if venta.esta_activa() %}<span class="text-success">Activa</span>
+            {% else %}<span class="text-danger">Anulada</span>{% endif %}
+          </div>
+        </div>
+        <span class="fw-bold">$ {{ "%.2f"|format(venta.total) }}</span>
+      </div>
+      {% endfor %}
+      {% if cliente.ventas | length > 5 %}
+      <div class="text-muted small mt-2 text-center">
+        y {{ cliente.ventas | length - 5 }} compra(s) más
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

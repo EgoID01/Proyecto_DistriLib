@@ -24,7 +24,7 @@ class Venta(db.Model):
     # Estado lógico: ACTIVA o ANULADA
     estado = db.Column(db.String(10), nullable=False, default='ACTIVA')
 
-    fecha_venta = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    fecha_venta = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     # Relación: una venta tiene muchos detalles (líneas de productos)
     detalles = db.relationship('DetalleVenta', backref='venta', lazy=True)

@@ -10,11 +10,16 @@
   <div class="cards-container">
 
     <!-- Tarjeta 1: Ventas del día -->
-    <div class="card pink">
+    <div class="card purple">
       <i class="fa-solid fa-sack-dollar icon"></i>
       <div class="subtitle">Ventas del día</div>
-      <div class="title">$ 100</div>
-      <div class="description">Ver detalles</div>
+      <div class="title">$ {{ "%.2f"|format(total_hoy) }}</div>
+      <div class="description">
+        <a href="{{ url_for('ventas.ventas_hoy') }}"
+           style="color:white; text-decoration:underline;">
+          Ver detalles
+        </a>
+      </div>
     </div>
 
     <!-- Tarjeta 2: Notificaciones como feed -->

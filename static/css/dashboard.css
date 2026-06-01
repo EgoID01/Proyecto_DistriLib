@@ -43,7 +43,7 @@
 }
 
 .navbar-custom{
-    background: linear-gradient(90deg, #8e44ad, #a855f7, #c084fc);
+    background: linear-gradient(90deg, #247cee, #034ba8, #541acc);
     padding: 12px 0;
     display:flex;
     align-items:center;
@@ -152,109 +152,17 @@ body{
   font-weight:600;
 }
 
-/* Colores */
-.pink{
-  background:linear-gradient(135deg,#f6c28b,#f08db2);
+/* Colores tarjetas */
+.purple{
+  background:linear-gradient(135deg, #7c4dff, #b388ff);
 }
 
 .blue{
-  background:linear-gradient(135deg,#8ec5f5,#4d9be6);
+  background:linear-gradient(135deg, #247cee, #541acc);
 }
 
-.green{
-  background:linear-gradient(135deg,#7ad7cf,#57cdb7);
-}
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-body{
-  background:#f3f3f3;
-  padding:40px;
-}
-
-.cards-container{
-  display:flex;
-  gap:30px;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-
-.card{
-  position:relative;
-  width:320px;
-  height:230px;
-  border-radius:10px;
-  overflow:hidden;
-  color:white;
-  padding:35px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.15);
-}
-
-/* Círculos decorativos */
-.card::before,
-.card::after{
-  content:"";
-  position:absolute;
-  border-radius:50%;
-  background:rgba(255,255,255,0.15);
-  pointer-events: none;
-}
-
-.card::before{
-  width:180px;
-  height:180px;
-  top:-40px;
-  right:-40px;
-}
-
-.card::after{
-  width:180px;
-  height:180px;
-  bottom:-70px;
-  left:80px;
-}
-
-.card .icon{
-  position:absolute;
-  top:30px;
-  right:30px;
-  font-size:22px;
-  opacity:0.9;
-}
-
-.title{
-  font-size:28px;
-  font-weight:bold;
-  margin-top:25px;
-}
-
-.subtitle{
-  font-size:16px;
-  margin-bottom:20px;
-  opacity:0.9;
-}
-
-.description{
-  margin-top:40px;
-  font-size:18px;
-  font-weight:600;
-}
-
-/* Colores */
-.pink{
-  background:linear-gradient(135deg,#f6c28b,#f08db2);
-}
-
-.blue{
-  background:linear-gradient(135deg,#8ec5f5,#4d9be6);
-}
-
-.green{
-  background:linear-gradient(135deg,#7ad7cf,#57cdb7);
+.teal{
+  background:linear-gradient(135deg, #00acc1, #26c6da);
 }
 
 .user-role{
@@ -370,6 +278,14 @@ body{
 }
 
 .notif-empty i { font-size: 22px; display: block; margin-bottom: 8px; }
+
+.sidebar-chevron {
+  transition: transform 0.2s ease;
+}
+
+[aria-expanded="true"] .sidebar-chevron {
+  transform: rotate(180deg);
+}
 
 .notif-clear-btn {
   background: rgba(255,255,255,0.2);

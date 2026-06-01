@@ -1,0 +1,65 @@
+/* ── Paleta DistriLib: azul-morado ──────────────────────────────
+   #247cee  azul brillante (primario claro)
+   #106adf  azul medio
+   #034ba8  azul oscuro (primario principal)
+   #541acc  morado profundo (acento)
+──────────────────────────────────────────────────────────────── */
+
+:root {
+  --bs-primary:       #034ba8;
+  --bs-primary-rgb:   3, 75, 168;
+  --bs-link-color:         #247cee;
+  --bs-link-hover-color:   #034ba8;
+  --ds-primary-light: #247cee;
+  --ds-primary-dark:  #034ba8;
+  --ds-accent:        #541acc;
+}
+
+/* Botón primario */
+.btn-primary {
+  --bs-btn-bg:                #034ba8;
+  --bs-btn-border-color:      #034ba8;
+  --bs-btn-hover-bg:          #541acc;
+  --bs-btn-hover-border-color:#541acc;
+  --bs-btn-active-bg:         #541acc;
+  --bs-btn-active-border-color:#541acc;
+  --bs-btn-focus-shadow-rgb:  36, 124, 238;
+}
+
+/* Botón outline primario */
+.btn-outline-primary {
+  --bs-btn-color:              #034ba8;
+  --bs-btn-border-color:       #034ba8;
+  --bs-btn-hover-bg:           #034ba8;
+  --bs-btn-hover-border-color: #034ba8;
+  --bs-btn-active-bg:          #034ba8;
+}
+
+/* Badge primario */
+.badge.bg-primary { background-color: #034ba8 !important; }
+
+/* Badge info (usado para VENDEDOR) */
+.badge.bg-info { background-color: #247cee !important; }
+
+/* Focus de formularios */
+.form-control:focus,
+.form-select:focus,
+.input-group .form-control:focus {
+  border-color: #247cee;
+  box-shadow: 0 0 0 0.2rem rgba(36, 124, 238, 0.2);
+}
+
+/* Tabs Bootstrap */
+.nav-tabs .nav-link { color: #555; }
+.nav-tabs .nav-link:hover { color: #034ba8; }
+.nav-tabs .nav-link.active {
+  color: #034ba8;
+  border-bottom: 2px solid #034ba8;
+}
+
+/* Links globales */
+a { color: #247cee; }
+a:hover { color: #034ba8; }
+
+/* Sidebar active */
+.sidebar .nav-link.active { color: #247cee; }

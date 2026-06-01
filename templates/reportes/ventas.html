@@ -1,0 +1,178 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Reportes de Ventas · DistriLib{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2">Reportes de Ventas</h1>
+</div>
+
+<!-- Filtros -->
+<form method="GET" class="p-3 bg-white rounded shadow-sm border mb-4">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Desde</label>
+      <input type="date" class="form-control form-control-sm" name="fecha_desde" value="{{ fecha_desde }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Hasta</label>
+      <input type="date" class="form-control form-control-sm" name="fecha_hasta" value="{{ fecha_hasta }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold mb-1">Vendedor</label>
+      <select class="form-select form-select-sm" name="vendedor_id">
+        <option value="">Todos</option>
+        {% for v in vendedores %}
+        <option value="{{ v.id }}" {{ 'selected' if vendedor_id == v.id|string }}>{{ v.nombres }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-auto">
+      <input type="hidden" name="tab" value="{{ tab_activa }}">
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-filter me-1"></i> Filtrar
+      </button>
+      <a href="{{ url_for('reportes.reporte_ventas') }}" class="btn btn-outline-secondary btn-sm ms-1">
+        Limpiar
+      </a>
+    </div>
+  </div>
+</form>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="reporteTabs">
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'general' }}"
+       href="{{ url_for('reportes.reporte_ventas', fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, vendedor_id=vendedor_id, tab='general') }}">
+      General
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'producto' }}"
+       href="{{ url_for('reportes.reporte_ventas', fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, vendedor_id=vendedor_id, tab='producto') }}">
+      Por producto
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'cliente' }}"
+       href="{{ url_for('reportes.reporte_ventas', fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, vendedor_id=vendedor_id, tab='cliente') }}">
+      Por cliente
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if tab_activa == 'vendedor' }}"
+       href="{{ url_for('reportes.reporte_ventas', fecha_desde=fecha_desde, fecha_hasta=fecha_hasta, vendedor_id=vendedor_id, tab='vendedor') }}">
+      Por vendedor
+    </a>
+  </li>
+</ul>
+
+<!-- Tab: General -->
+{% if tab_activa == 'general' %}
+<div class="table-responsive">
+  <div class="mb-2 text-muted small">
+    {{ ventas_general|length }} venta(s) · Total: <strong>$ {{ "%.2f"|format(total_general) }}</strong>
+  </div>
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th><th>Fecha</th><th>Vendedor</th><th>Cliente</th>
+        <th>Cédula</th><th class="text-end">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in ventas_general %}
+      <tr>
+        <td class="text-muted">#{{ v.id }}</td>
+        <td class="small">{{ v.fecha_venta.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td class="small">{{ v.vendedor.nombres }}</td>
+        <td>{{ v.cliente.nombre_completo() }}</td>
+        <td class="text-muted small">{{ v.cliente.cedula_ruc }}</td>
+        <td class="text-end fw-semibold">$ {{ "%.2f"|format(v.total) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center text-muted py-3">Sin registros para los filtros aplicados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tab: Por producto -->
+{% elif tab_activa == 'producto' %}
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Libro</th><th>ISBN</th>
+        <th class="text-center">Unidades vendidas</th>
+        <th class="text-end">Total recaudado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in ventas_producto %}
+      <tr>
+        <td class="fw-semibold">{{ r.nombre }}</td>
+        <td class="text-muted small">{{ r.isbn }}</td>
+        <td class="text-center">{{ r.cantidad }}</td>
+        <td class="text-end fw-semibold">$ {{ "%.2f"|format(r.subtotal) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">Sin registros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tab: Por cliente -->
+{% elif tab_activa == 'cliente' %}
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Cliente</th><th>Cédula / RUC</th>
+        <th class="text-center">N° ventas</th>
+        <th class="text-end">Total comprado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in ventas_cliente %}
+      <tr>
+        <td class="fw-semibold">{{ r.nombres }} {{ r.apellidos }}</td>
+        <td class="text-muted small">{{ r.cedula_ruc }}</td>
+        <td class="text-center">{{ r.num_ventas }}</td>
+        <td class="text-end fw-semibold">$ {{ "%.2f"|format(r.total) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">Sin registros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tab: Por vendedor -->
+{% elif tab_activa == 'vendedor' %}
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Vendedor</th>
+        <th class="text-center">N° ventas</th>
+        <th class="text-end">Total vendido</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in ventas_vendedor %}
+      <tr>
+        <td class="fw-semibold">{{ r.nombres }}</td>
+        <td class="text-center">{{ r.num_ventas }}</td>
+        <td class="text-end fw-semibold">$ {{ "%.2f"|format(r.total) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center text-muted py-3">Sin registros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}
