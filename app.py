@@ -23,7 +23,7 @@ def crear_base_de_datos():
         with conexion.cursor() as cursor:
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{Config.DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
         conexion.commit()
-        print(f"✓ Base de datos '{Config.DB_NAME}' verificada correctamente.")
+        print(f"Base de datos '{Config.DB_NAME}' verificada correctamente.")
     finally:
         conexion.close()
 
@@ -146,7 +146,7 @@ def insertar_datos_iniciales():
         db.session.add(admin)
 
     db.session.commit()
-    print("✓ Datos iniciales verificados correctamente.")
+    print("Datos iniciales verificados correctamente.")
 
 
 # Punto de entrada de la aplicación

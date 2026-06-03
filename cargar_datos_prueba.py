@@ -100,7 +100,7 @@ with app.app_context():
     agregar_respuestas(v2.id, resps_demo)
 
     db.session.commit()
-    print("✔ Usuarios creados.")
+    print("Usuarios creados.")
 
     # ── Libros ──────────────────────────────────────────────────────
     libros_raw = [
@@ -163,7 +163,7 @@ with app.app_context():
         libros.append(l)
 
     db.session.commit()
-    print(f"✔ {len(libros)} libros creados.")
+    print(f"{len(libros)} libros creados.")
 
     # Alias para referencias posteriores
     l_cod_civil  = libros[0];  l_cod_penal = libros[1];  l_cod_com   = libros[2]
@@ -217,7 +217,7 @@ with app.app_context():
 
     db.session.flush()
     db.session.commit()
-    print(f"✔ {len(clientes)} clientes creados.")
+    print(f"{len(clientes)} clientes creados.")
 
     # ── Ventas ──────────────────────────────────────────────────────
     vendedores  = [admin, v1, v2]
@@ -280,7 +280,7 @@ with app.app_context():
             n_ventas += 1
 
     db.session.commit()
-    print(f"✔ {n_ventas} ventas creadas.")
+    print(f"{n_ventas} ventas creadas.")
 
     # ── Anular ~5% ──────────────────────────────────────────────────
     activas  = Venta.query.filter_by(estado='ACTIVA').all()
@@ -298,7 +298,7 @@ with app.app_context():
             ))
 
     db.session.commit()
-    print(f"✔ {len(a_anular)} ventas anuladas.")
+    print(f"{len(a_anular)} ventas anuladas.")
 
     # ── Reposiciones ────────────────────────────────────────────────
     reposiciones = [
