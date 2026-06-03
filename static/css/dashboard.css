@@ -273,6 +273,10 @@ body{
 
 .notif-empty i { font-size: 22px; display: block; margin-bottom: 8px; }
 
+.text-agotado { color: #8b0000 !important; }
+
+.th-sortable:hover { filter: brightness(1.2); }
+
 .sidebar-chevron {
   transition: transform 0.2s ease;
 }

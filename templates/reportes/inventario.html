@@ -66,8 +66,8 @@
         <td class="text-muted small">{{ libro.autor }}</td>
         <td class="text-muted small">{{ libro.isbn }}</td>
         <td class="text-end">$ {{ "%.2f"|format(libro.precio) }}</td>
-        <td class="text-center fw-bold {{ 'text-danger' if alerta == 'ALERTA_ROJA' else ('text-warning' if alerta == 'ALERTA_AMARILLA' else 'text-success') }}">
-          {{ libro.stock }}
+        <td class="text-center fw-bold {{ 'text-agotado' if libro.stock == 0 else ('text-danger' if alerta == 'ALERTA_ROJA' else ('text-warning' if alerta == 'ALERTA_AMARILLA' else 'text-success')) }}">
+          {{ libro.stock }}{% if libro.stock == 0 %} <i class="fa-solid fa-xmark"></i>{% endif %}
         </td>
         <td class="text-center">
           {% if libro.activo %}<span class="badge bg-success">Activo</span>

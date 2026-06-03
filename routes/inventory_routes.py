@@ -14,8 +14,20 @@ def listar_libros():
     pendiente = redirigir_segun_estado()
     if pendiente:
         return pendiente
-    libros = Libro.query.order_by(Libro.nombre.asc()).all()
-    return render_template('inventario/lista.html', libros=libros)
+    q = request.args.get('q', '').strip()
+    query = Libro.query
+    if q:
+        like = f'%{q}%'
+        query = query.filter(
+            db.or_(
+                Libro.nombre.ilike(like),
+                Libro.autor.ilike(like),
+                Libro.editorial.ilike(like),
+                Libro.isbn.ilike(like),
+            )
+        )
+    libros = query.order_by(Libro.nombre.asc()).all()
+    return render_template('inventario/lista.html', libros=libros, q=q)
 
 
 @inventario_bp.route('/crear', methods=['GET', 'POST'])
@@ -235,7 +247,7 @@ def eliminar_libro(id):
 
     if libro.detalles_venta:
         flash(
-            f'No se puede eliminar "{libro.nombre}": tiene ventas registradas. '
+            f'No se puede eliminar "{libro.nombre}": tiene movimientos registrados. '
             f'Desactívalo en su lugar para retirarlo del sistema.',
             'danger'
         )

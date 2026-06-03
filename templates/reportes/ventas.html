@@ -100,12 +100,16 @@
 <!-- Tab: Por producto -->
 {% elif tab_activa == 'producto' %}
 <div class="table-responsive">
-  <table class="table table-sm table-hover align-middle">
+  <table class="table table-sm table-hover align-middle" id="tablaOrdenable">
     <thead class="table-dark">
       <tr>
         <th>Libro</th><th>ISBN</th>
-        <th class="text-center">Unidades vendidas</th>
-        <th class="text-end">Total recaudado</th>
+        <th class="text-center th-sortable" data-sortable>
+          Unidades vendidas <i class="fa-solid fa-sort ms-1"></i>
+        </th>
+        <th class="text-end th-sortable" data-sortable>
+          Total recaudado <i class="fa-solid fa-sort ms-1"></i>
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -113,8 +117,8 @@
       <tr>
         <td class="fw-semibold">{{ r.nombre }}</td>
         <td class="text-muted small">{{ r.isbn }}</td>
-        <td class="text-center">{{ r.cantidad }}</td>
-        <td class="text-end fw-semibold">$ {{ "%.2f"|format(r.subtotal) }}</td>
+        <td class="text-center" data-value="{{ r.cantidad }}">{{ r.cantidad }}</td>
+        <td class="text-end fw-semibold" data-value="{{ r.subtotal }}">$ {{ "%.2f"|format(r.subtotal) }}</td>
       </tr>
       {% else %}
       <tr><td colspan="4" class="text-center text-muted py-3">Sin registros.</td></tr>
@@ -126,12 +130,16 @@
 <!-- Tab: Por cliente -->
 {% elif tab_activa == 'cliente' %}
 <div class="table-responsive">
-  <table class="table table-sm table-hover align-middle">
+  <table class="table table-sm table-hover align-middle" id="tablaOrdenable">
     <thead class="table-dark">
       <tr>
         <th>Cliente</th><th>Cédula / RUC</th>
-        <th class="text-center">N° ventas</th>
-        <th class="text-end">Total comprado</th>
+        <th class="text-center th-sortable" data-sortable>
+          N° ventas <i class="fa-solid fa-sort ms-1"></i>
+        </th>
+        <th class="text-end th-sortable" data-sortable>
+          Total comprado <i class="fa-solid fa-sort ms-1"></i>
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -139,8 +147,8 @@
       <tr>
         <td class="fw-semibold">{{ r.nombres }} {{ r.apellidos }}</td>
         <td class="text-muted small">{{ r.cedula_ruc }}</td>
-        <td class="text-center">{{ r.num_ventas }}</td>
-        <td class="text-end fw-semibold">$ {{ "%.2f"|format(r.total) }}</td>
+        <td class="text-center" data-value="{{ r.num_ventas }}">{{ r.num_ventas }}</td>
+        <td class="text-end fw-semibold" data-value="{{ r.total }}">$ {{ "%.2f"|format(r.total) }}</td>
       </tr>
       {% else %}
       <tr><td colspan="4" class="text-center text-muted py-3">Sin registros.</td></tr>
@@ -152,20 +160,24 @@
 <!-- Tab: Por vendedor -->
 {% elif tab_activa == 'vendedor' %}
 <div class="table-responsive">
-  <table class="table table-sm table-hover align-middle">
+  <table class="table table-sm table-hover align-middle" id="tablaOrdenable">
     <thead class="table-dark">
       <tr>
         <th>Vendedor</th>
-        <th class="text-center">N° ventas</th>
-        <th class="text-end">Total vendido</th>
+        <th class="text-center th-sortable" data-sortable>
+          N° ventas <i class="fa-solid fa-sort ms-1"></i>
+        </th>
+        <th class="text-end th-sortable" data-sortable>
+          Total vendido <i class="fa-solid fa-sort ms-1"></i>
+        </th>
       </tr>
     </thead>
     <tbody>
       {% for r in ventas_vendedor %}
       <tr>
         <td class="fw-semibold">{{ r.nombres }}</td>
-        <td class="text-center">{{ r.num_ventas }}</td>
-        <td class="text-end fw-semibold">$ {{ "%.2f"|format(r.total) }}</td>
+        <td class="text-center" data-value="{{ r.num_ventas }}">{{ r.num_ventas }}</td>
+        <td class="text-end fw-semibold" data-value="{{ r.total }}">$ {{ "%.2f"|format(r.total) }}</td>
       </tr>
       {% else %}
       <tr><td colspan="3" class="text-center text-muted py-3">Sin registros.</td></tr>
@@ -174,5 +186,47 @@
   </table>
 </div>
 {% endif %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const tabla = document.getElementById('tablaOrdenable');
+  if (!tabla) return;
+
+  const dirs = new Map();
+
+  tabla.querySelectorAll('th[data-sortable]').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.style.userSelect = 'none';
+    dirs.set(th, 'none');
+
+    th.addEventListener('click', () => {
+      const colIdx = Array.from(th.parentElement.children).indexOf(th);
+      const tbody = tabla.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      // Resetear otros encabezados
+      tabla.querySelectorAll('th[data-sortable]').forEach(other => {
+        if (other !== th) {
+          dirs.set(other, 'none');
+          other.querySelector('i').className = 'fa-solid fa-sort ms-1';
+        }
+      });
+
+      const asc = dirs.get(th) !== 'asc';
+      dirs.set(th, asc ? 'asc' : 'desc');
+      th.querySelector('i').className = `fa-solid fa-chevron-${asc ? 'up' : 'down'} ms-1`;
+
+      rows.sort((a, b) => {
+        const aVal = parseFloat(a.children[colIdx]?.dataset.value) || 0;
+        const bVal = parseFloat(b.children[colIdx]?.dataset.value) || 0;
+        return asc ? aVal - bVal : bVal - aVal;
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
+})();
+</script>
+{% endblock %}
 
 {% endblock %}

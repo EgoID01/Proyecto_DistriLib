@@ -373,7 +373,7 @@ def dashboard():
             .subquery()
         )
         libros_roja = Libro.query.filter(
-            Libro.stock <= 2,
+            Libro.stock >= 1, Libro.stock <= 2,
             Libro.id.in_(libros_con_mov_reciente)
         ).order_by(Libro.stock.asc()).all()
         libros_amarilla = Libro.query.filter(
@@ -381,7 +381,7 @@ def dashboard():
             Libro.id.in_(libros_con_mov_reciente)
         ).order_by(Libro.stock.asc()).all()
     else:
-        libros_roja = Libro.query.filter(Libro.stock <= 2).order_by(Libro.stock.asc()).all()
+        libros_roja = Libro.query.filter(Libro.stock >= 1, Libro.stock <= 2).order_by(Libro.stock.asc()).all()
         libros_amarilla = Libro.query.filter(Libro.stock > 2, Libro.stock <= 5).order_by(Libro.stock.asc()).all()
 
     total_alertas = len(libros_roja) + len(libros_amarilla)
